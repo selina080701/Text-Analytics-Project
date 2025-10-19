@@ -1,0 +1,28 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+.venv*/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# JetBrains IDE (PyCharm, IntelliJ)
+.idea/
+.idea*
+*.iml
+
+# SQLite databases
+*.sqlite3
+
+# Logs
+logs/
+*.log
+app_logging/logs/
+app_logging/logs/*.log
+
+# OS-generated files
+.DS_Store
+Thumbs.db

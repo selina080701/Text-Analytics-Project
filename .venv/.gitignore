@@ -13,6 +13,7 @@ __pycache__/
 .idea/
 .idea*
 *.iml
+*.iws
 
 # SQLite databases
 *.sqlite3

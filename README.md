@@ -70,3 +70,17 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+
+4. **Configure Git for Jupyter Notebooks (optional, avoids merge conflicts)**
+```bash
+# Install nbdime
+pip install nbdime
+
+# Enable Git integration globally
+nbdime config-git --enable --global
+```
+
+5. **(Optional) Clear notebook outputs before committing**
+```bash
+jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace <notebook>.ipynb
+```

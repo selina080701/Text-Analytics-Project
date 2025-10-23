@@ -26,15 +26,25 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - **Details:** Allows downloading a lightweight subset (e.g., 1%, 5%, 10%) to reduce memory and storage usage.
 - **Output:** Saves the raw subset CSV files in `data/raw/`.
 
-### 2. `data-cleaning.ipynb`
+### 2. `tokenization.ipynb`
+- **Purpose:** Perform tokenization and remove stopwords.
+- **Details:** Splits the song lyrics into individual tokens, removes stopwords, and creates new columns `tokens`, `token_count`, `words` and `word_count`.
+- **Output:** Saves the final CSV files as `data/clean/data.csv`.
+
+### 3. `data-cleaning.ipynb`
 - **Purpose:** Clean and preprocess song lyrics for analysis.
 - **Details:** Removes metadata tags (e.g., `[Intro]`, `[Verse]`), line breaks, and extra spaces. Renames the cleaned lyrics column to `lyrics`.
 - **Output:** Saves the cleaned CSV files in `data/clean/`.
 
-### 3. `statistical-analysis.ipynb`
+### 4. `statistical-analysis.ipynb`
 - **Purpose:** Explore patterns and distributions in the cleaned song lyrics across genres and artists.
 - **Details:** Focuses on word frequencies, stylistic differences, and similarity structures.
-- **Input:** Uses cleaned CSVs from `data/clean/`.
+- **Input:** Uses cleaned CSV `data/clean/data.csv`.
+
+### 5. `word-embedding.ipynb`
+- **Purpose:** Create and explore word embeddings.
+- **Details:** Uses tokenized data to generate embeddings, visualize semantic relationships, and analyze similarity between words.
+- **Input:** Uses tokenized CSV `data/clean/data.csv`.
 
 ---
 
@@ -42,9 +52,12 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 
 - `data/raw/` : Raw subsets of the dataset (e.g., 1%, 5%)  
 - `data/clean/` : Cleaned versions of the subsets  
+- `data/clean/data.csv` : Final dataset for analysis, embeddings, etc.
 - `load-data-subset.ipynb` : Notebook to load and save raw subsets  
 - `data-cleaning.ipynb` : Notebook to clean the raw lyrics  
+- `tokenization.ipynb` : Notebook to tokenize lyrics and remove stopwords
 - `statistical-analysis.ipynb` : Notebook to perform analysis on cleaned data  
+- `word-embedding.ipynb` : Notebook to generate and analyze word embeddings
 - `requirements.txt` : Python dependencies for the project  
 
 ---

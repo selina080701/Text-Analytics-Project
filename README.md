@@ -62,6 +62,22 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 
 ---
 
+## App Folder Structure
+|-- app.py
+|-- pages
+|      |-- Intro.py
+|      |-- data_loading.py
+|      |-- data_cleaning.py
+|      |-- tokenization.py
+|      |-- stat_analysis.py
+|      |-- word_embedding.py
+|-- utils
+|      |-- ...
+
+pages folder for layout of streamlit page
+utils for everything to create the shown tasks on pages (maybe folder per page with utils)
+---
+
 ## Setup
 
 1. **Create a virtual environment**

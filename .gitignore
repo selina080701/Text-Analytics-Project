@@ -1,0 +1,47 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# ---- Jupyter Notebooks ----
+.ipynb_checkpoints/
+
+# ---- Streamlit ----
+# (Streamlit generiert keine grossen Artefakte, aber Logs sicherheitshalber ignorieren)
+logs/
+.streamlit/secrets.toml
+
+# ---- OS / Editor ----
+.DS_Store
+
+# ---- JetBrains / PyCharm ----
+.idea/
+*.iml
+
+# ---- Environment / Secrets ----
+.env
+*.env
+
+# ---- Data / Cache ----
+# Falls du grosse Daten nutzt:
+data/
+*.csv
+*.tsv
+*.xlsx
+*.json
+
+# Optional: Wenn Modellartefakte entstehen
+models/
+*.pickle
+*.pkl
+*.joblib
+
+# ---- Generated files ----
+*.log

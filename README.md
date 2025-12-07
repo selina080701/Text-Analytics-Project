@@ -50,12 +50,16 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 
 ### 6. `model-evaluation.ipynb`
 - **Purspose:** Train and evaluate multiple machine learning models for genre classification.
-- **Detail:** 
-  - Compares different embedding strategies: Word2Vec, TF-IDF, and SentenceTransformer (MiniLM).
-  - Trains several classifiers: LinearSVC, Logistic Regression, and Random Forest.
-  - Computes accuracy, balanced accuracy, classification reports, and normalized confusion matrices.
-  - Summarizes results in comparative tables and provides interpretation of model behavior.
--**Input:** Uses tokenized dataset `data/clean/data.csv`.
+- **Detail:** Compares Word2Vec, TF-IDF, and Transformer embeddings with several classifiers (LinearSVC, Logistic Regression, Random Forest).
+- **Input:** Uses tokenized dataset `data/clean/data.csv`.
+- **Output:** 
+  - Best classifier saved to `models/clf_st_svc.joblib`.
+  - Label encoder saved to `models/label_encoder.joblib`.
+
+### 7. `text-classification.ipynb`
+- **Purpose:** Classify new lyrics using the best-performing model.
+- **Details:** Loads the trained model and predicts genres for user-provided text.
+- **Input:** Classifier and Label encoder from `models/`.
 
 ---
 
@@ -69,7 +73,8 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - `tokenization.ipynb` : Notebook to tokenize lyrics and remove stopwords
 - `statistical-analysis.ipynb` : Notebook to perform analysis on cleaned data  
 - `word-embedding.ipynb` : Notebook to generate and analyze word embeddings
-- `model-evaluation.ipynb` Notebook to evaluate models for genre classification
+- `model-evaluation.ipynb` : Notebook to evaluate models for genre classification
+- `text-classification.ipynb` : Notebook to classify song lyrics
 - `requirements.txt` : Python dependencies for the project  
 
 ---

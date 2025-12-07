@@ -29,11 +29,13 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 ### 2. `data-cleaning.ipynb`
 - **Purpose:** Clean and preprocess song lyrics for analysis.
 - **Details:** Removes metadata tags (e.g., `[Intro]`, `[Verse]`), line breaks, and extra spaces. Renames the cleaned lyrics column to `lyrics`.
+- **Input:** Uses raw loaded subset from `data/raw/`.
 - **Output:** Saves the cleaned CSV files in `data/clean/`.
 
 ### 3. `tokenization.ipynb`
 - **Purpose:** Perform tokenization and remove stopwords.
 - **Details:** Splits the song lyrics into individual tokens, removes stopwords, and creates new columns `tokens`, `token_count`, `words` and `word_count`.
+- **Input:** Uses cleaned subset from `data/clean/`.
 - **Output:** Saves the final CSV files as `data/clean/data.csv`.
 
 ### 4. `statistical-analysis.ipynb`
@@ -45,6 +47,15 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - **Purpose:** Create and explore word embeddings.
 - **Details:** Uses tokenized data to generate embeddings, visualize semantic relationships, and analyze similarity between words.
 - **Input:** Uses tokenized CSV `data/clean/data.csv`.
+
+### 6. `model-evaluation.ipynb`
+- **Purspose:** Train and evaluate multiple machine learning models for genre classification.
+- **Detail:** 
+  - Compares different embedding strategies: Word2Vec, TF-IDF, and SentenceTransformer (MiniLM).
+  - Trains several classifiers: LinearSVC, Logistic Regression, and Random Forest.
+  - Computes accuracy, balanced accuracy, classification reports, and normalized confusion matrices.
+  - Summarizes results in comparative tables and provides interpretation of model behavior.
+-**Input:** Uses tokenized dataset `data/clean/data.csv`.
 
 ---
 
@@ -58,31 +69,19 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - `tokenization.ipynb` : Notebook to tokenize lyrics and remove stopwords
 - `statistical-analysis.ipynb` : Notebook to perform analysis on cleaned data  
 - `word-embedding.ipynb` : Notebook to generate and analyze word embeddings
+- `model-evaluation.ipynb` Notebook to evaluate models for genre classification
 - `requirements.txt` : Python dependencies for the project  
 
 ---
 
-## App Folder Structure
-|-- app.py
-|-- pages
-|      |-- Intro.py
-|      |-- data_loading.py
-|      |-- data_cleaning.py
-|      |-- tokenization.py
-|      |-- stat_analysis.py
-|      |-- word_embedding.py
-|-- utils
-|      |-- ...
-
-pages folder for layout of streamlit page
-utils for everything to create the shown tasks on pages (maybe folder per page with utils)
----
-
 ## Setup
+
+**This project requires Python 3.11.**
+Make sure your environment uses Python 3.11 before creating the virtual environment.
 
 1. **Create a virtual environment**
 ```bash
-python3 -m venv .venv
+python3.11 -m venv .venv
 ```
 
 2. **Activate the virtual environment**

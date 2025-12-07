@@ -80,7 +80,7 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - `word-embedding.ipynb` : Notebook to generate and analyze word embeddings
 - `model-evaluation.ipynb` : Notebook to evaluate models for genre classification
 - `text-classification.ipynb` : Notebook to classify song lyrics
-- `text-generation.ipynb': Notebook for generating song lyrics
+- `text-generation.ipynb`: Notebook for generating song lyrics
 - `requirements.txt` : Python dependencies for the project  
 
 ---

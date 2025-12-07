@@ -61,6 +61,11 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - **Details:** Loads the trained model and predicts genres for user-provided text.
 - **Input:** Classifier and Label encoder from `models/`.
 
+### 8. `text-generation.ipynb`
+- **Purpose:** Generate new synthetic song lyrics using a Markov chain model.
+- **Details:** Builds genre-specific Markov models from the dataset and generates verses and choruses using `markovify`. Supports adjustable sentence lengths and structure (verse/chorus).
+- **Input:** Lyrics from the cleaned dataset `data/clean/data.csv`.
+
 ---
 
 ## Folder Structure
@@ -75,6 +80,7 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 - `word-embedding.ipynb` : Notebook to generate and analyze word embeddings
 - `model-evaluation.ipynb` : Notebook to evaluate models for genre classification
 - `text-classification.ipynb` : Notebook to classify song lyrics
+- `text-generation.ipynb': Notebook for generating song lyrics
 - `requirements.txt` : Python dependencies for the project  
 
 ---

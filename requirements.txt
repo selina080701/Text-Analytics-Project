@@ -9,3 +9,4 @@ sentence-transformers>=5.1.2
 gensim>=4.4.0
 xgboost>=3.1.2
 markovify>=0.9.4
+streamlit>=1.52.1

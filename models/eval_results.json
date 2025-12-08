@@ -1,0 +1,66 @@
+{
+  "w2v_LinearSVC": {
+    "embedding": "Word2Vec",
+    "classifier": "LinearSVC",
+    "accuracy": 0.5762114537444933,
+    "balanced_accuracy": 0.510001628377042,
+    "f1_macro": 0.4527770485635126
+  },
+  "w2v_LogReg": {
+    "embedding": "Word2Vec",
+    "classifier": "LogisticRegression",
+    "accuracy": 0.46138032305433185,
+    "balanced_accuracy": 0.549021104298998,
+    "f1_macro": 0.4029447318784465
+  },
+  "w2v_RandomForest": {
+    "embedding": "Word2Vec",
+    "classifier": "RandomForest",
+    "accuracy": 0.6459618208516887,
+    "balanced_accuracy": 0.40302956898327863,
+    "f1_macro": 0.41386650542719555
+  },
+  "tfidf_LinearSVC": {
+    "embedding": "TF-IDF (char 3\u20135 n-grams)",
+    "classifier": "LinearSVC",
+    "accuracy": 0.5930983847283406,
+    "balanced_accuracy": 0.45770306736737054,
+    "f1_macro": 0.46563867093860534
+  },
+  "tfidf_LogReg": {
+    "embedding": "TF-IDF (char 3\u20135 n-grams)",
+    "classifier": "LogisticRegression",
+    "accuracy": 0.5505139500734214,
+    "balanced_accuracy": 0.5346010324006597,
+    "f1_macro": 0.4694940259482287
+  },
+  "tfidf_RandomForest": {
+    "embedding": "TF-IDF (char 3\u20135 n-grams)",
+    "classifier": "RandomForest",
+    "accuracy": 0.581057268722467,
+    "balanced_accuracy": 0.40482606080274985,
+    "f1_macro": 0.41420816201794697
+  },
+  "st_LinearSVC": {
+    "embedding": "SentenceTransformer(all-MiniLM-L6-v2)",
+    "classifier": "LinearSVC",
+    "accuracy": 0.5718061674008811,
+    "balanced_accuracy": 0.5152474657069953,
+    "f1_macro": 0.4523186085206698
+  },
+  "st_LogReg": {
+    "embedding": "SentenceTransformer(all-MiniLM-L6-v2)",
+    "classifier": "LogisticRegression",
+    "accuracy": 0.4753303964757709,
+    "balanced_accuracy": 0.5447691401105385,
+    "f1_macro": 0.4075731020695143
+  },
+  "st_RandomForest": {
+    "embedding": "SentenceTransformer(all-MiniLM-L6-v2)",
+    "classifier": "RandomForest",
+    "accuracy": 0.6242290748898679,
+    "balanced_accuracy": 0.34317603751037135,
+    "f1_macro": 0.3481175787308741
+  },
+  "best_model": "tfidf_LogReg"
+}

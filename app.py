@@ -61,11 +61,6 @@ page = st.sidebar.radio(
     ],
 )
 
-st.sidebar.markdown("---")
-st.sidebar.caption(
-    "Notebooks bleiben für Experimente. "
-    "Die App nutzt die gleiche Logik, aber Schritt für Schritt."
-)
 
 # -------------------------------------------------------
 # Seite 1 – Datensubset laden
@@ -87,22 +82,13 @@ if page == "1️⃣ Datensubset laden":
     # -----------------------------
     st.header("1. Preparations")
 
-    st.subheader("1.1 Import Packages")
-    st.markdown("Benötigte Python-Packages für Dataset-Download, Verarbeitung und Dateiverwaltung:")
-    st.code(
-        """from datasets import load_dataset
-import pandas as pd
-import os""",
-        language="python"
-    )
-
-    st.subheader("1.2 Load original Dataset from Hugging Face")
+    st.subheader("1.1 Load original Dataset from Hugging Face")
     st.markdown("""
     Es wird **nicht** die komplette CSV geladen, sondern das Dataset über Hugging Face Datasets.  
     Standardmäßig lädt `load_dataset` hier nur die **Metadaten + Zugriff auf den `train`-Split**.
     """)
     st.code(
-        """# Lädt den 'train'-Split des Genius Song Lyrics Datasets
+        """
 dataset = load_dataset("sebastiandizon/genius-song-lyrics", split="train")""",
         language="python"
     )
@@ -115,13 +101,13 @@ dataset = load_dataset("sebastiandizon/genius-song-lyrics", split="train")""",
     - Erstelle das Verzeichnis, falls es noch nicht existiert.
     """)
     st.code(
-        """# Prozentualer Anteil des Datensatzes, der lokal gespeichert werden soll
+        """
 subset_fraction = 1
 
-# Anzahl Einträge für das Subset
+
 subset_size = int(len(dataset) * subset_fraction / 100)
 
-# Ausgabeverzeichnis und -pfad
+
 output_dir = "data/raw"
 os.makedirs(output_dir, exist_ok=True)
 
@@ -138,10 +124,9 @@ output_path = os.path.join(output_dir, f"lyrics_subset_{subset_fraction}pct.csv"
     - Wähle die ersten `subset_size` Einträge als Subset.
     """)
     st.code(
-        """# Datensatz mischen für zufälliges Subset
+        """
 dataset = dataset.shuffle(seed=42)
 
-# Subset auswählen
 dataset_small = dataset.select(range(subset_size))
 
 print(f"Dataset loaded successfully with {len(dataset_small):,} entries.")""",
@@ -151,7 +136,7 @@ print(f"Dataset loaded successfully with {len(dataset_small):,} entries.")""",
     st.subheader("2.2 Convert to pandas DataFrame")
     st.markdown("Konvertiere das Subset in ein `pandas.DataFrame` und gib Basis-Statistiken aus.")
     st.code(
-        """# Konvertieren in pandas DataFrame
+        """
 df = dataset_small.to_pandas()
 
 print(f"DataFrame shape: {df.shape}")
@@ -162,7 +147,7 @@ print(f"Number of Songs: {len(df):,} | Artists: {df['artist'].nunique():,} | Gen
     st.subheader("2.3 Save Subset locally")
     st.markdown("Speichere das Subset als CSV-Datei im definierten Ausgabeverzeichnis.")
     st.code(
-        """# Subset lokal als CSV speichern
+        """
 df.to_csv(output_path, index=False)
 
 print(f"Subset saved to: {output_path}")""",
@@ -175,14 +160,7 @@ print(f"Subset saved to: {output_path}")""",
     Zum Abschluss wird ein kurzer Überblick über die ersten Zeilen und die **Genre-Verteilung** gegeben.
     """)
 
-    st.subheader("3.1 Erste Zeilen anzeigen")
-    st.code(
-        """# Vorschau der ersten Zeilen
-df.head()""",
-        language="python"
-    )
-
-    st.subheader("3.2 Genre-Verteilung")
+    st.subheader("3.1 Genre-Verteilung")
     st.code(
         """print("\\nGENRE DISTRIBUTION")
 print("=" * 60)
@@ -231,10 +209,10 @@ for tag, count in category_counts.items():
             f"- **Quelle:** `{csv_path}`"
         )
 
-        st.subheader("👀 Vorschau (df.head)")
+        st.subheader("👀 Vorschau")
         st.dataframe(df_real.head())
 
-        st.subheader("🎵 Genre-Verteilung (REAL)")
+        st.subheader("🎵 Genre-Verteilung")
         genre_counts = df_real["tag"].value_counts()
         report_lines = ["GENRE DISTRIBUTION", "=" * 60]
         for genre, count in genre_counts.items():
@@ -271,15 +249,7 @@ elif page == "2️⃣ Daten bereinigen":
     # -----------------------------------
     st.header("1. Dataset Overview")
 
-    st.subheader("1.1 Import Packages and Settings")
-    st.code(
-        """import pandas as pd
-import re
-import os""",
-        language="python"
-    )
-
-    st.subheader("1.2 Load Dataset")
+    st.subheader("1.1 Load Dataset")
     st.markdown("""
     Es wird das im **Kapitel 1** erzeugte Datensubset geladen, welches die rohen Lyrics enthält.
     """)
@@ -299,39 +269,55 @@ df = pd.read_csv(input_path)""",
     st.subheader("2.1 Problem")
     st.markdown("""
     Eine Vorschau der rohen Lyrics zeigt typische Probleme:
-    - Metadaten-Tags wie `[Intro]`, `[Verse]`, `[Hook]`
-    - Zeilenumbrüche `\\n`
+
+    - Metadaten-Tags wie **`[Intro]`, `[Verse]`, `[Hook]`**
+    - Zeilenumbrüche **`\\n`**
     - Mehrfache bzw. führende/abschließende Leerzeichen  
 
-    Diese müssen vor der Analyse entfernt werden.
+    Diese Elemente erschweren spätere NLP-Analysen und müssen daher bereinigt werden.
     """)
+
+    preview_text = """
+    0    [Intro]\\nBitch I'm clean\\nTwo sticks like Chow...
+    1    My old girl left me on her old bull shit\\nSo I...
+    2    [Intro: spoken]\\nAvast there matey haha\\nIf a ...
+    3    Just throw a glimpse under the shell\\nGhostly ...
+    4    [Verse 1]\\nI miss the taste of a sweeter life\\...
+    Name: lyrics, dtype: object
+    """
+
+    st.code(preview_text, language="text")
 
     st.subheader("2.2 Define and Apply Cleaning Function")
     st.markdown("""
-    Es wird eine Funktion definiert, die nacheinander:
-    - `re.sub(r'\\[.*?\\]', '', text)` → entfernt **alles zwischen** `[` und `]`  
-    - `text.replace('\\n', ' ')` → ersetzt Zeilenumbrüche durch ein Leerzeichen  
-    - `re.sub(r'\\s+', ' ', text).strip()` → reduziert Mehrfach-Leerzeichen auf eins und trimmt den Text
+    ### 2.2 Define and Apply Cleaning Function
+
+    Die Cleaning-Funktion bereitet den Text in drei Schritten vor:
+
+    1. **Entfernen aller Inhalte zwischen eckigen Klammern**  
+       `re.sub(r'\\[.*?\\]', '', text)`  
+       Dieser Ausdruck löscht jeden Abschnitt, der zwischen `[` und `]` steht – inklusive des enthaltenen Textes. Dadurch verschwinden z. B. Annotationen, Quellen, Zeitstempel oder andere Meta-Informationen.
+
+    2. **Ersetzen von Zeilenumbrüchen durch Leerzeichen**  
+       `text.replace('\\n', ' ')`  
+       Zeilenumbrüche werden in Leerzeichen umgewandelt, damit der Text eine durchgehende Linie bildet und besser weiterverarbeitet werden kann.
+
+    3. **Reduzieren mehrfacher Leerzeichen & finales Formatieren**  
+       `re.sub(r'\\s+', ' ', text).strip()`  
+       Mehrere aufeinanderfolgende Leerzeichen werden zu einem einzigen zusammengefasst.  
+       Gleichzeitig entfernt `.strip()` führende und nachfolgende Leerzeichen.  
+       Das Ergebnis ist ein sauberer, kompakter Text ohne unnötige Abstände.
+
+    **Endresultat:** Der Text ist frei von Klammerinhalten, hat keine Zeilenumbrüche mehr und enthält nur noch einheitliche Leerzeichen – optimal zur weiteren Analyse oder NLP-Verarbeitung.
     """)
     st.code(
-        """import re
-
-def clean_lyrics(text: str) -> str:
-    if not isinstance(text, str):
-        return ""
-
-    # 1) Metadaten-Tags entfernen, z.B. [Intro], [Verse]
-    text = re.sub(r'\\[.*?\\]', '', text)
-
-    # 2) Zeilenumbrüche durch Leerzeichen ersetzen
-    text = text.replace("\\n", " ")
-
-    # 3) Mehrfache Leerzeichen entfernen und Text trimmen
-    text = re.sub(r"\\s+", " ", text).strip()
-
+        """
+def clean_lyrics(text):
+    text = re.sub(r'\[.*?\]', '', text)
+    text = text.replace('\n', ' ')
+    text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# Neue Spalte mit bereinigten Lyrics
 df["lyrics_clean"] = df["lyrics"].apply(clean_lyrics)""",
         language="python"
     )
@@ -344,8 +330,9 @@ df["lyrics_clean"] = df["lyrics"].apply(clean_lyrics)""",
     - doppelte oder mehrfache Leerzeichen bereinigt  
     """)
     st.code(
-        """# Vorschau: rohe Lyrics vs. bereinigte Lyrics
-df[["lyrics", "lyrics_clean"]].head()""",
+        """
+df = df.drop(columns=['lyrics'])
+df = df.rename(columns={'lyrics_clean': 'lyrics'})""",
         language="python"
     )
 
@@ -374,18 +361,10 @@ output_path = os.path.join(output_dir, "lyrics_subset_1pct_clean.csv")""",
     - `lyrics_clean` in `lyrics` umbenannt, sodass die bereinigten Texte im Feld `lyrics` liegen.
     """)
     st.code(
-        """# Originalspalte entfernen
+        """
 df = df.drop(columns=["lyrics"])
 
-# Bereinigte Spalte umbenennen
 df = df.rename(columns={"lyrics_clean": "lyrics"})""",
-        language="python"
-    )
-
-    st.subheader("3.3 Save Subset locally")
-    st.code(
-        """df.to_csv(output_path, index=False)
-print(f"Cleaned subset saved to: {output_path}")""",
         language="python"
     )
 
@@ -420,7 +399,22 @@ print(f"Cleaned subset saved to: {output_path}")""",
         )
 
         st.subheader("👀 Vorschau der bereinigten Lyrics")
-        display_cols = [c for c in ["artist", "title", "tag", "lyrics"] if c in df_clean.columns]
+        display_cols = [
+            c for c in [
+                "title",
+                "tag",
+                "artist",
+                "year",
+                "views",
+                "features",
+                "id",
+                "language_cld3",
+                "language_ft",
+                "language",
+                "lyrics"
+            ]
+            if c in df_clean.columns
+        ]
         st.dataframe(df_clean[display_cols].head())
 
         if "lyrics" in df_clean.columns:
@@ -458,27 +452,14 @@ elif page == "3️⃣ Tokenisierung":
     # -----------------------------
     st.header("1. Preparation")
 
-    st.subheader("1.1 Import Packages and Settings")
-    st.code(
-        """import pandas as pd
-import re
-import os
-from nltk.corpus import stopwords
-from collections import Counter
-import matplotlib.pyplot as plt""",
-        language="python"
-    )
-
-    st.subheader("1.2 Load Dataset")
     st.markdown("""
     Es wird das im **Kapitel 2** bereinigte Datenset geladen, das bereits  
     von Metadaten-Tags und Zeilenumbrüchen befreite Lyrics enthält.
     """)
     st.code(
-        """input_dir = "data/processed"
-input_path = os.path.join(input_dir, "lyrics_subset_1pct_clean.csv")
+        """df = pd.read_csv('data/clean/lyrics_subset_1pct_clean.csv')
 
-df = pd.read_csv(input_path)""",
+df = df[df["language_cld3"] == "en"]""",
         language="python"
     )
 
@@ -495,7 +476,7 @@ df = pd.read_csv(input_path)""",
     zusätzlich wird `word_count` als Anzahl Tokens pro Song ergänzt.
     """)
     st.code(
-        """# Beispiel: einfache Tokenisierung über Whitespace
+        """
 def to_words(text: str) -> list[str]:
     if not isinstance(text, str):
         return []
@@ -514,17 +495,23 @@ df["word_count"] = df["words"].apply(len)""",
     - Die Anzahl der Tokens pro Song in `token_count`
     """)
     st.code(
-        """stop_words = set(stopwords.words("english"))
+        """STOPWORDS = {
+    "the","a","an","and","or","but","if","then","so","than","that","those","these","this",
+    "to","of","in","on","for","with","as","at","by","from","into","over","under","up","down",
+    "is","am","are","was","were","be","been","being","do","does","did","doing","have","has","had",
+    "i","you","he","she","it","we","they","me","him","her","us","them","my","your","his","its","our","their",
+    "not","no","yes","yeah","y'all","yall","im","i'm","i’d","i'd","i’ll","i'll","youre","you're","dont","don't",
+    "cant","can't","ill","i’ll","id","i'd","ive","i’ve","ya","oh","ooh","la","na","nah"
+}
 
-def remove_stopwords(tokens: list[str]) -> list[str]:
-    return [t for t in tokens if t.lower() not in stop_words]
+def filtered_tokens(text):
+    tokens = preprocess_text(text)
+    return [t for t in tokens if t not in STOPWORDS and not t.isdigit() and len(t) > 1]
 
-df["tokens"] = df["words"].apply(remove_stopwords)
-df["token_count"] = df["tokens"].apply(len)""",
+filtered_tokens("This is a test!")""",
         language="python"
     )
 
-    # 🔹 NEU: 2.3 Visualisierung der häufigsten Wörter
     st.subheader("2.3 Visualisierung der häufigsten Wörter")
     st.markdown("""
     Zur Veranschaulichung werden die häufigsten Wörter **vor** und **nach**
@@ -533,37 +520,14 @@ df["token_count"] = df["tokens"].apply(len)""",
     Die Plots zeigen deutlich, dass das Entfernen von Stopwörtern die Verteilung stark verändert:
     Das häufigste Wort **nach** dem Filtern taucht in den ursprünglichen Top-15 gar nicht mehr auf.
     """)
-    st.code(
-        """top_n = 15
-words = [t for row in df["words"] for t in row]
-tokens_filtered = [t for row in df["tokens"] for t in row]
 
-word_counts_raw = Counter(words).most_common(top_n)
-word_counts_filtered = Counter(tokens_filtered).most_common(top_n)
+    FIG_DIR = "documentation/tokenization"
+    img = os.path.join(FIG_DIR, "top_15_words.png")
 
-df_raw = pd.DataFrame(word_counts_raw, columns=["word", "count"])
-df_filtered = pd.DataFrame(word_counts_filtered, columns=["word", "count"])
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
-
-axes[0].bar(df_raw["word"], df_raw["count"])
-axes[0].set_title(f"Top {top_n} Words (Before Stopword Removal)", fontsize=12, fontweight='bold')
-axes[0].set_ylabel("Frequency")
-axes[0].tick_params(axis="x", rotation=45)
-
-axes[1].bar(df_filtered["word"], df_filtered["count"])
-axes[1].set_title(f"Top {top_n} Words (After Stopword Removal)", fontsize=12, fontweight='bold')
-axes[1].tick_params(axis="x", rotation=45)
-
-plt.tight_layout()
-plt.show()""",
-        language="python"
-    )
-
-    st.markdown("""
-    *Die oben dargestellten Plots werden im Notebook erzeugt.  
-    In der Streamlit-App dienen sie als **Dokumentation des Analyse-Schritts**.*
-    """)
+    if os.path.exists(img):
+        st.image(img, use_container_width=200)
+    else:
+        st.warning("⚠️ Das Bild konnte nicht gefunden werden.")
 
     # --------------------------
     # 3. Save final Dataset DOKU
@@ -588,347 +552,6 @@ output_path = os.path.join(output_dir, "data.csv")""",
         language="python"
     )
 
-    st.subheader("3.2 Save Dataset locally")
-    st.code(
-        """df.to_csv(output_path, index=False)
-print(f"Final tokenized dataset saved to: {output_path}")""",
-        language="python"
-    )
-
-    st.info(
-        "Obiger Abschnitt beschreibt den **Notebook-Workflow** für die Tokenisierung. "
-        "Die eigentliche Tokenisierung, Stopwort-Filterung und Plot-Erstellung wurde im Jupyter Notebook ausgeführt. "
-        "Im folgenden Abschnitt werden die **fertigen Tokenisierungs-Resultate** aus `data/clean/data.csv` geladen."
-    )
-
-    # -------------------------------------------------
-    # 4. Analyse-Resultate aus data/clean/data.csv
-    # -------------------------------------------------
-    st.header("📊 Analyse-Resultate (aus finalem Datensatz)")
-
-    DATA_CLEAN_DIR = "data/clean"
-    stats_path = os.path.join(DATA_CLEAN_DIR, "data.csv")
-
-    if not os.path.exists(stats_path):
-        st.error(
-            f"Finaler Datensatz nicht gefunden: `{stats_path}`. "
-            "Bitte zuerst die vorherigen Kapitel-Notebooks bis zur Speicherung von `data/clean/data.csv` ausführen."
-        )
-    else:
-        import ast
-        import itertools
-        from collections import Counter
-
-        import numpy as np
-        import matplotlib.pyplot as plt
-
-        df_stats = pd.read_csv(stats_path)
-
-
-        # Hilfs-Funktion, um Listenspalten aus CSV zu parsen (words/tokens als Python-Liste)
-        def parse_list_column(series):
-            return series.fillna("[]").apply(
-                lambda x: ast.literal_eval(x) if isinstance(x, str) else []
-            )
-
-
-        if "words" in df_stats.columns:
-            df_stats["words"] = parse_list_column(df_stats["words"])
-        if "tokens" in df_stats.columns:
-            df_stats["tokens"] = parse_list_column(df_stats["tokens"])
-
-        # Basisgrössen
-        genre_counts = df_stats["tag"].value_counts() if "tag" in df_stats.columns else None
-        word_counts = df_stats["word_count"] if "word_count" in df_stats.columns else None
-        token_counts = df_stats["token_count"] if "token_count" in df_stats.columns else None
-
-        all_tokens = list(
-            itertools.chain.from_iterable(df_stats["tokens"])
-        ) if "tokens" in df_stats.columns else []
-
-        freq_dist = Counter(all_tokens) if all_tokens else Counter()
-
-        # Zipf-Fit
-        if freq_dist:
-            freq_values = np.array(sorted(freq_dist.values(), reverse=True))
-            ranks = np.arange(1, len(freq_values) + 1)
-            log_ranks = np.log10(ranks)
-            log_freqs = np.log10(freq_values)
-
-            slope, intercept = np.polyfit(log_ranks, log_freqs, 1)
-            predicted = slope * log_ranks + intercept
-        else:
-            slope = intercept = None
-            log_ranks = log_freqs = predicted = None
-
-        # Hapax / seltene Wörter
-        hapax = [w for w, c in freq_dist.items() if c == 1] if freq_dist else []
-        rare = [w for w, c in freq_dist.items() if c <= 5] if freq_dist else []
-
-
-        # N-Gramme
-        def make_ngrams(tokens, n):
-            return zip(*[tokens[i:] for i in range(n)])
-
-
-        if all_tokens:
-            unigrams = all_tokens
-            bigrams_all = list(
-                itertools.chain.from_iterable(
-                    make_ngrams(toks, 2) for toks in df_stats["tokens"]
-                )
-            )
-            trigrams_all = list(
-                itertools.chain.from_iterable(
-                    make_ngrams(toks, 3) for toks in df_stats["tokens"]
-                )
-            )
-
-            top_15_unigrams = Counter(unigrams).most_common(15)
-            top_15_bigrams = Counter(bigrams_all).most_common(15)
-            top_15_trigrams = Counter(trigrams_all).most_common(15)
-        else:
-            top_15_unigrams = top_15_bigrams = top_15_trigrams = []
-
-        # Genre-Stats für Category-Tabelle + Plot
-        if "tag" in df_stats.columns and "word_count" in df_stats.columns:
-            genre_stats = (
-                df_stats.groupby("tag")
-                .agg(
-                    songs=("title", "count") if "title" in df_stats.columns else ("tag", "count"),
-                    avg_word_count=("word_count", "mean"),
-                    avg_token_count=("token_count", "mean") if "token_count" in df_stats.columns else ("word_count",
-                                                                                                       "mean"),
-                )
-            )
-        else:
-            genre_stats = None
-
-        # Tabs mit Grafiken
-        (
-            tab_genre,
-            tab_text,
-            tab_token,
-            tab_vocab,
-            tab_zipf,
-            tab_rare,
-            tab_cat,
-            tab_ngram,
-            tab_uni,
-            tab_bi,
-            tab_tri,
-        ) = st.tabs([
-            "GENRE DISTRIBUTION",
-            "TEXT STATISTICS",
-            "TOKEN STATISTICS",
-            "VOCABULARY STATISTICS",
-            "ZIPF'S LAW ANALYSIS",
-            "RARE WORDS ANALYSIS",
-            "Category Statistics",
-            "N-gram Analysis",
-            "TOP 15 UNIGRAMS",
-            "TOP 15 BIGRAMS",
-            "TOP 15 TRIGRAMS",
-        ])
-
-        # --- GENRE DISTRIBUTION ---
-        with tab_genre:
-            st.subheader("GENRE DISTRIBUTION")
-            if genre_counts is not None:
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.bar(genre_counts.index, genre_counts.values)
-                ax.set_ylabel("Anzahl Songs")
-                ax.set_xlabel("Genre")
-                ax.set_title("Genre-Verteilung")
-                plt.xticks(rotation=45)
-                st.pyplot(fig)
-                st.dataframe(genre_counts.to_frame(name="count"))
-            else:
-                st.warning("Spalte `tag` nicht im Datensatz gefunden.")
-
-        # --- TEXT STATISTICS ---
-        with tab_text:
-            st.subheader("TEXT STATISTICS (Wortanzahl vor Stopwörtern)")
-            if word_counts is not None:
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.hist(word_counts, bins=50)
-                ax.set_xlabel("Wörter pro Song (word_count)")
-                ax.set_ylabel("Häufigkeit")
-                ax.set_title("Verteilung der Wortanzahl")
-                st.pyplot(fig)
-                st.write(word_counts.describe())
-            else:
-                st.warning("Spalte `word_count` nicht im Datensatz gefunden.")
-
-        # --- TOKEN STATISTICS ---
-        with tab_token:
-            st.subheader("TOKEN STATISTICS (nach Stopwörtern)")
-            if token_counts is not None:
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.hist(token_counts, bins=50)
-                ax.set_xlabel("Tokens pro Song (token_count)")
-                ax.set_ylabel("Häufigkeit")
-                ax.set_title("Verteilung der Tokens")
-                st.pyplot(fig)
-                st.write(token_counts.describe())
-            else:
-                st.warning("Spalte `token_count` nicht im Datensatz gefunden.")
-
-        # --- VOCABULARY STATISTICS ---
-        with tab_vocab:
-            st.subheader("VOCABULARY STATISTICS")
-            if all_tokens:
-                vocab_size = len(freq_dist)
-                num_tokens = len(all_tokens)
-                ttr = vocab_size / num_tokens
-                st.markdown(
-                    f"- **Vokabulargröße:** {vocab_size:,}  \n"
-                    f"- **Anzahl Tokens:** {num_tokens:,}  \n"
-                    f"- **Type–Token Ratio (TTR):** {ttr:.3f}"
-                )
-
-                # einfache Log-Log-Vokabular-Kurve (optional)
-                fig, ax = plt.subplots(figsize=(6, 4))
-                sorted_freqs = np.array(sorted(freq_dist.values(), reverse=True))
-                ranks_v = np.arange(1, len(sorted_freqs) + 1)
-                ax.loglog(ranks_v, sorted_freqs)
-                ax.set_xlabel("Rang (log)")
-                ax.set_ylabel("Frequenz (log)")
-                ax.set_title("Wortfrequenzen (Log-Log)")
-                st.pyplot(fig)
-            else:
-                st.warning("Tokens konnten nicht berechnet werden.")
-
-        # --- ZIPF'S LAW ANALYSIS ---
-        with tab_zipf:
-            st.subheader("ZIPF'S LAW ANALYSIS")
-            if slope is not None:
-                st.markdown(
-                    f"- **Steigung (α):** {slope:.2f}  \n"
-                    f"- **R²:** {np.corrcoef(log_ranks, log_freqs)[0, 1] ** 2:.3f}"
-                )
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.scatter(log_ranks, log_freqs, s=5, label="Beobachtet")
-                ax.plot(log_ranks, predicted, label="Zipf-Fit", linewidth=2)
-                ax.set_xlabel("log10(Rang)")
-                ax.set_ylabel("log10(Frequenz)")
-                ax.set_title("Zipf's Law – Frequenz vs. Rang")
-                ax.legend()
-                st.pyplot(fig)
-            else:
-                st.warning("Zipf-Analyse konnte nicht durchgeführt werden.")
-
-        # --- RARE WORDS ANALYSIS ---
-        with tab_rare:
-            st.subheader("RARE WORDS ANALYSIS")
-            if freq_dist:
-                hapax_ratio = len(hapax) / len(freq_dist)
-                rare_ratio = len(rare) / len(freq_dist)
-                st.markdown(
-                    f"- **Anteil Hapax Legomena (Freq=1):** {hapax_ratio * 100:.1f}%  \n"
-                    f"- **Anteil Wörter mit ≤ 5 Vorkommen:** {rare_ratio * 100:.1f}%"
-                )
-
-                # Verteilung für Freq 1–10
-                max_k = 10
-                freq_counts = Counter(freq_dist.values())
-                xs = list(range(1, max_k + 1))
-                ys = [freq_counts.get(k, 0) for k in xs]
-
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.bar(xs, ys)
-                ax.set_xlabel("Anzahl Vorkommen")
-                ax.set_ylabel("Anzahl unterschiedlicher Wörter")
-                ax.set_title("Verteilung seltener Wörter (1–10 Vorkommen)")
-                st.pyplot(fig)
-
-                st.markdown("**Beispiel-Hapax (Auszug):**")
-                st.write(hapax[:20])
-            else:
-                st.warning("Keine Token-Frequenzen verfügbar.")
-
-        # --- Category Statistics ---
-        with tab_cat:
-            st.subheader("Category Statistics (nach Genre)")
-            if genre_stats is not None:
-                st.dataframe(genre_stats)
-
-                # Plot: durchschnittliche Tokens pro Song je Genre
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.bar(genre_stats.index, genre_stats["avg_token_count"])
-                ax.set_xlabel("Genre")
-                ax.set_ylabel("Ø Tokens pro Song")
-                ax.set_title("Durchschnittliche Songlänge (nach Stopwörtern)")
-                plt.xticks(rotation=45)
-                st.pyplot(fig)
-            else:
-                st.warning("Genre- oder Wortlängen-Spalten fehlen im Datensatz.")
-
-        # --- N-gram Analysis (Übersicht) ---
-        with tab_ngram:
-            st.subheader("N-gram Analysis – Überblick")
-            if all_tokens:
-                st.markdown(
-                    f"- **Unigram-Vokabular:** {len(freq_dist):,}  \n"
-                    f"- **Anzahl Unigram-Tokens:** {len(all_tokens):,}"
-                )
-                st.markdown("""
-                Details zu häufigsten N-Grammen finden sich in den Tabs  
-                **TOP 15 UNIGRAMS**, **TOP 15 BIGRAMS** und **TOP 15 TRIGRAMS**.
-                """)
-            else:
-                st.warning("Keine Tokens verfügbar.")
-
-        # --- TOP 15 UNIGRAMS ---
-        with tab_uni:
-            st.subheader("TOP 15 UNIGRAMS")
-            if top_15_unigrams:
-                df_uni = pd.DataFrame(top_15_unigrams, columns=["unigram", "count"])
-                fig, ax = plt.subplots(figsize=(7, 4))
-                ax.barh(df_uni["unigram"], df_uni["count"])
-                ax.invert_yaxis()
-                ax.set_xlabel("Frequenz")
-                ax.set_title("Top 15 Unigrams")
-                st.pyplot(fig)
-                st.dataframe(df_uni)
-            else:
-                st.warning("Keine Unigramme verfügbar.")
-
-        # --- TOP 15 BIGRAMS ---
-        with tab_bi:
-            st.subheader("TOP 15 BIGRAMS")
-            if top_15_bigrams:
-                df_bi = pd.DataFrame(
-                    [(f"{w1} {w2}", c) for (w1, w2), c in top_15_bigrams],
-                    columns=["bigram", "count"],
-                )
-                fig, ax = plt.subplots(figsize=(7, 4))
-                ax.barh(df_bi["bigram"], df_bi["count"])
-                ax.invert_yaxis()
-                ax.set_xlabel("Frequenz")
-                ax.set_title("Top 15 Bigrams")
-                st.pyplot(fig)
-                st.dataframe(df_bi)
-            else:
-                st.warning("Keine Bigrams verfügbar.")
-
-        # --- TOP 15 TRIGRAMS ---
-        with tab_tri:
-            st.subheader("TOP 15 TRIGRAMS")
-            if top_15_trigrams:
-                df_tri = pd.DataFrame(
-                    [(f"{w1} {w2} {w3}", c) for (w1, w2, w3), c in top_15_trigrams],
-                    columns=["trigram", "count"],
-                )
-                fig, ax = plt.subplots(figsize=(7, 4))
-                ax.barh(df_tri["trigram"], df_tri["count"])
-                ax.invert_yaxis()
-                ax.set_xlabel("Frequenz")
-                ax.set_title("Top 15 Trigrams")
-                st.pyplot(fig)
-                st.dataframe(df_tri)
-            else:
-                st.warning("Keine Trigrams verfügbar.")
 
 # -------------------------------------------------------
 # Seite 4 – Statistische Analyse (Dokumentation Notebook)
@@ -962,72 +585,32 @@ elif page == "4️⃣ Statistische Analyse":
     # -----------------------------
     # 1. Dataset Overview
     # -----------------------------
-    st.header("1. Dataset Overview")
 
-    st.subheader("1.1 Import Packages and Settings")
-    st.markdown("""
-        Import der benötigten Bibliotheken für Datenverarbeitung, Statistik,
-        Visualisierung und N-Gramm-Analysen.  
-
-        Zusätzlich wird ein Ordner `documentation/statistical_analysis` angelegt,
-        in dem alle Grafiken und Kennzahlen gespeichert werden.
-        """)
-    st.code(
-        """import pandas as pd
-import re
-from collections import defaultdict, Counter
-from itertools import tee
-import numpy as np
-import matplotlib.pyplot as plt
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from sklearn.linear_model import LinearRegression
-import os
-import ast
-import json
-#%%
-plt.style.use('default')
-%matplotlib inline
-FIG_DIR = "documentation/statistical_analysis"
-os.makedirs(FIG_DIR, exist_ok=True)""",
-        language="python",
-    )
-
-    st.subheader("1.2 Load Dataset")
+    st.subheader("1.1 Load Dataset")
     st.markdown("""
         Laden des final bereinigten Datensatzes (`data/clean/data.csv`) und
         Rückkonvertierung der Spalten `words` und `tokens` von String-Repräsentationen
         zu echten Python-Listen (mittels `ast.literal_eval`).
         """)
     st.code(
-        """#%% md
-## 1.2 Load Dataset
-#%%
+        """
 df = pd.read_csv('data/clean/data.csv')
 
-# convert string representations of lists back into actual Python lists
 for col in ["words", "tokens"]:
     if isinstance(df[col].iloc[0], str):
         df[col] = df[col].apply(ast.literal_eval)
-
-print(f"DataFrame shape: {df.shape}")
-print(f"Number of Songs: {len(df)} | Artists: {df['artist'].nunique()}")
-df.head()""",
+""",
         language="python",
     )
 
-    st.subheader("1.3 Descriptive Statistics")
+    st.subheader("1.2 Descriptive Statistics")
     st.markdown("""
         Zuerst wird die **Genre-Verteilung** analysiert und als Balkendiagramm geplottet.
         Anschließend werden **Text- und Token-Statistiken** berechnet
         (total, min, avg, max) und jeweils als kleine Übersichtsgrafik gespeichert.
         """)
     st.code(
-        """#%% md
-## 1.3 Descriptive Statistics
-Before diving deeper into the analysis, we start with some basic descriptive statistics. First, we examine the genre distribution within the dataset. Then, we analyze characteristics of the lyrics themselves — such as the total number of lyrics and words, as well as the average, minimum, and maximum word counts — both before and after removing stopwords.
-#%%
-# Genre distribution
+        """
 print("\\nGENRE DISTRIBUTION")
 print("=" * 60)
 category_counts = df['tag'].value_counts().sort_values(ascending=False)
@@ -1035,115 +618,10 @@ category_counts = df['tag'].value_counts().sort_values(ascending=False)
 for tag,count in category_counts.items():
     pct = (count / len(df)) * 100
     print(f"{tag}: {count:,} songs ({pct:.2f}%)")
-#%%
-category_counts.plot(kind="bar")
-plt.title("Genre Distribution", fontweight='bold')
-plt.tight_layout()
-plt.savefig(os.path.join(FIG_DIR, "genre_distribution.png"), dpi=150)
-plt.show()
-plt.close()""",
+""",
         language="python",
     )
 
-    st.code(
-        """#%%
-total_lyrics = len(df)
-total_words_raw = df["word_count"].sum()
-avg_words_raw = df["word_count"].mean()
-min_words_raw = df["word_count"].min()
-max_words_raw = df["word_count"].max()
-
-print("TEXT STATISTICS")
-print("=" * 60)
-print(f"Total lyrics (songs):     {total_lyrics:,}")
-print(f"Total words:              {total_words_raw:,}")
-print(f"Average words/lyric:      {avg_words_raw:.2f}")
-print(f"Shortest lyric:           {min_words_raw} words")
-print(f"Longest lyric:            {max_words_raw} words")
-
-# TEXT STATISTICS plot
-plt.figure()
-plt.bar(["min", "avg", "max"], [min_words_raw, avg_words_raw, max_words_raw])
-plt.title("Text Statistics (word_count)", fontweight='bold')
-plt.ylabel("Words per lyric")
-plt.tight_layout()
-plt.savefig(os.path.join(FIG_DIR, "text_statistics.png"), dpi=150)
-plt.close()""",
-        language="python",
-    )
-
-    st.code(
-        """#%%
-tokens_per_row = df["tokens"]
-tokens = [t for row in tokens_per_row for t in row]
-
-total_lyrics = len(df)
-total_tokens = len(tokens)
-unique_tokens = len(set(tokens))
-avg_tokens = df["token_count"].mean()
-min_tokens = df["token_count"].min()
-max_tokens = df["token_count"].max()
-
-print("TOKEN STATISTICS")
-print("=" * 60)
-print(f"Total lyrics (songs):     {total_lyrics:,}")
-print(f"Total tokens:             {total_tokens:,}")
-print(f"Unique tokens:            {unique_tokens:,}")
-print(f"Average tokens/lyric:     {avg_tokens:.2f}")
-print(f"Shortest lyric:           {min_tokens} tokens")
-print(f"Longest lyric:            {max_tokens} tokens")
-
-# TOKEN STATISTICS plot
-plt.figure()
-plt.bar(["min", "avg", "max"], [min_tokens, avg_tokens, max_tokens])
-plt.title("Token Statistics (token_count)", fontweight='bold')
-plt.ylabel("Tokens per lyric")
-plt.tight_layout()
-plt.savefig(os.path.join(FIG_DIR, "token_statistics.png"), dpi=150)
-plt.close()""",
-        language="python",
-    )
-
-    st.subheader("1.4 Top-15 Wörter vor/nach Stopwörtern")
-    st.markdown("""
-        Vergleich der **15 häufigsten Wörter** vor und nach Stopwort-Entfernung.
-        Die Ergebnisse werden als Doppelbalkendiagramm geplottet und gespeichert.
-        """)
-    st.code(
-        """#%%
-top_n = 15
-words = [t for row in df["words"] for t in row]
-tokens_filtered = [t for row in df["tokens"] for t in row]
-
-word_counts_raw = Counter(words).most_common(top_n)
-word_counts_filtered = Counter(tokens_filtered).most_common(top_n)
-
-df_raw = pd.DataFrame(word_counts_raw, columns=["word", "count"])
-df_filtered = pd.DataFrame(word_counts_filtered, columns=["word", "count"])
-
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
-
-axes[0].bar(df_raw["word"], df_raw["count"])
-axes[0].set_title(f"Top {top_n} Words (Before Stopword Removal)", fontsize=12, fontweight='bold')
-axes[0].set_ylabel("Frequency")
-axes[0].tick_params(axis="x", rotation=45)
-
-axes[1].bar(df_filtered["word"], df_filtered["count"])
-axes[1].set_title(f"Top {top_n} Words (After Stopword Removal)", fontsize=12, fontweight='bold')
-axes[1].tick_params(axis="x", rotation=45)
-
-plt.tight_layout()
-plt.show()
-fig.savefig(os.path.join(FIG_DIR, "top15_words_before_after_stopwords.png"), dpi=150)
-plt.close(fig)""",
-        language="python",
-    )
-
-    st.markdown("""
-        Die Plots zeigen die 15 häufigsten Wörter vor und nach Stopwort-Entfernung.
-        Das häufigste Wort nach dem Filtern erscheint nicht mehr in den ursprünglichen Top-15.
-        """)
 
     # -----------------------------
     # 2. Word-Level Analysis
@@ -1152,53 +630,70 @@ plt.close(fig)""",
 
     st.subheader("2.1 Vocabulary Statistics")
     st.markdown("""
-        Bestimmung der Vokabulargröße, Gesamtzahl der Worttokens und Type–Token Ratio (TTR).
+        Bestimmung der Vokabulargrösse, Gesamtzahl der Worttokens und Type–Token Ratio (TTR).
+        Nun werfen wir einen genaueren Blick auf die Texte und Wörter, indem wir das Vokabular analysieren, 
+        Zipfs Gesetz untersuchen, seltene Wörter (Hapaxlegomena) identifizieren und verschiedene Kategoriestatistiken untersuchen.
         """)
     st.code(
-        """#%% md
----
-# 2. Word-Level Analysis
-
-Now we take a deeper look at the lyrics and words by analyzing the vocabulary, examining Zipf’s law, identifying rare words (hapax legomena), and exploring various category statistics.
-
-## 2.1 Vocabulary Statistics
-#%%
-# get all words
+        """
 all_tokens = [token for tokens in df["words"] for token in tokens]
 
-# count unique words
+
 word_counts = Counter(all_tokens)
 vocab_size = len(word_counts)
 type_token_ratio = vocab_size / len(all_tokens)
 
-print("VOCABULARY STATISTICS")
-print("=" * 60)
-print(f"Total word tokens:          {len(all_tokens):,}")
-print(f"Unique words (vocabulary):  {vocab_size:,}")
-print(f"Type-token ratio:           {type_token_ratio:.4f}")""",
+""",
         language="python",
     )
-
-    st.subheader("2.2 Zipf's Law Analysis")
+    preview_text = """
+VOCABULARY STATISTICS
+============================================================
+Total word tokens:          10,596,323
+Unique words (vocabulary):  127,659
+Type-token ratio:           0.0120
+    """
+    st.code(preview_text, language="text")
     st.markdown("""
-        Analyse der Beziehung zwischen Wortfrequenz und Rang gemäss Zipf’s Law:
-        - Fit eines Potenzgesetzes \\( f(r) = C / r^\\alpha \\)  
-        - Visualisierung (Log-Log-Plot + Top-30-Vergleich)  
-        - Speichern der Parameter in `zipf_stats.json`
-        """)
+    Im Durchschnitt kommt jedes Wort etwa 100 Mal im Datensatz vor, was auf einen hohen Wiederholungsgrad hindeutet.
+    Das type-token ratio (TTR) von 0,012 ist relativ niedrig, was zu erwarten war, 
+    da der Korpus aus Songtexten besteht – einem Genre, das sich durch wiederkehrende Wörter, 
+    Refrains und eine im Vergleich zu anderen Textarten begrenzte lexikalische Vielfalt auszeichnet.""")
+
+    st.subheader("2.2 Zipf-Analyse")
+
+    st.markdown("""
+    Die Zipf-Law beschreibt eine fundamentale Eigenschaft natürlicher Sprache:
+    Die Häufigkeit eines Wortes ist **umgekehrt proportional zu seinem Rang**
+    in der sortierten Wortfrequenzliste.
+    """)
+
+    st.markdown("**Mathematische Form:**")
+    st.latex(r"f(r) = \frac{C}{r^{\alpha}}")
+
+    st.markdown(r"""
+    **Bedeutung der Parameter:**
+
+    - \( f(r) \) = Häufigkeit des Wortes mit Rang \( r \)
+    - \( \alpha \) = Exponent bzw. Steigung (typischer Idealwert für natürliche Sprache ≈ 1.0)
+    - \( C \) = Normierungskonstante
+
+    Wenn \( \alpha = 1.0 \), dann gilt:
+
+    - das Wort auf Rang 2 tritt **halb so häufig** auf wie das Wort auf Rang 1
+    - Rang 3 tritt **ein Drittel so häufig** auf
+    - Rang 4 **ein Viertel so häufig**, usw.
+
+    Diese Potenzgesetz-Struktur ist erstaunlich stabil und findet sich in
+    unterschiedlichsten Texten, Genres, Korpora und Sprachen wieder.
+    """)
+
     st.code(
-        """#%% md
-## 2.2 Zipf's Law Analysis
-
-**Zipf's Law:** In natural language, word frequency is inversely proportional to rank.
-
-Mathematical form: **f(r) = C / r^α**
-#%%
-all_word_freq = Counter(words).most_common(100)
+        """all_word_freq = Counter(words).most_common(100)
 ranks = list(range(1, len(all_word_freq) + 1))
 frequencies = [freq for word, freq in all_word_freq]
 
-# Fit power law model (top 100 words)
+
 log_ranks_100 = np.log(ranks).reshape(-1, 1)
 log_freq_100 = np.log(frequencies)
 
@@ -1208,65 +703,10 @@ model.fit(log_ranks_100, log_freq_100)
 r_squared = model.score(log_ranks_100, log_freq_100)
 slope = model.coef_[0]
 intercept = model.intercept_
-coefficient_C = np.exp(intercept)
-
-print("ZIPF'S LAW ANALYSIS")
-print("=" * 60)
-print(f"Fitted equation: f(r) = {coefficient_C:.2f} / r^{abs(slope):.3f}")
-print(f"\\nModel parameters:")
-print(f"  Slope (α):         {slope:.4f}")
-print(f"  R^2 (fit quality): {r_squared:.4f}")
-print(f"  Ideal Zipf slope:  -1.0000")
-print(f"  Deviation:         {abs(slope + 1.0):.4f}")""",
+coefficient_C = np.exp(intercept)""",
         language="python",
     )
 
-    st.code(
-        """#%%
-fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-
-# Log-log plot
-axes[0].loglog(ranks, frequencies, 'o', alpha=0.7, color='steelblue', label='Actual')
-fitted_zipf = [coefficient_C / (r ** abs(slope)) for r in ranks]
-axes[0].loglog(ranks, fitted_zipf, 'g-', linewidth=2, alpha=0.8, label=f'Fitted (α={abs(slope):.3f})')
-ideal_zipf = [frequencies[0] / r for r in ranks]
-axes[0].loglog(ranks, ideal_zipf, 'r--', linewidth=2, alpha=0.7, label='Ideal Zipf (α=1.0)')
-axes[0].set_xlabel('Rank (log scale)')
-axes[0].set_ylabel('Frequency (log scale)')
-axes[0].set_title("Zipf's Law: Actual vs Fitted vs Ideal", fontweight='bold')
-axes[0].legend()
-axes[0].grid(True, alpha=0.3)
-
-# Top 30 comparison
-n = 30
-axes[1].plot(ranks[:n], frequencies[:n], 'o', color='steelblue', label='Actual')
-axes[1].plot(ranks[:n], [coefficient_C / (r ** abs(slope)) for r in ranks[:n]],
-             'g-', label=f'Fitted (α={abs(slope):.3f})', linewidth=2, alpha=0.7)
-axes[1].plot(ranks[:n], [frequencies[0] / r for r in ranks[:n]],
-             'r--', label='Ideal Zipf (a=1.0)', linewidth=2, alpha=0.6)
-axes[1].set_xlabel('Rank')
-axes[1].set_ylabel('Frequency')
-axes[1].set_title('Top 30 Words: Detailed Comparison', fontweight='bold')
-axes[1].legend()
-axes[1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-fig.savefig(os.path.join(FIG_DIR, "zipf_loglog_and_top30.png"), dpi=150)
-plt.close(fig)
-plt.show()
-
-zipf_stats = {
-    "C": float(coefficient_C),
-    "alpha": float(slope),
-    "r2": float(r_squared),
-    "ideal_slope": -1.0,
-    "deviation": float(abs(slope + 1.0)),
-}
-
-with open(os.path.join(FIG_DIR, "zipf_stats.json"), "w") as f:
-    json.dump(zipf_stats, f, indent=2)""",
-        language="python",
-    )
 
     st.subheader("2.3 Hapax Legomena (Rare Words)")
     st.markdown("""
@@ -1275,61 +715,19 @@ with open(os.path.join(FIG_DIR, "zipf_stats.json"), "w") as f:
         und Kennzahlen in `rare_words_stats.json` geschrieben.
         """)
     st.code(
-        """#%% md
-## 2.3 Hapax Legomena (Rare Words)
-
-**Hapax legomena** = words appearing only once in the corpus
-#%%
-# Find hapax legomena
+        """
 word_counts = Counter(words)
 hapax = [word for word, count in word_counts.items() if count == 1]
 hapax_pct = (len(hapax) / vocab_size) * 100
 
-# Find words appearing 2-5 times
 rare_2 = [word for word, count in word_counts.items() if count == 2]
 rare_3_5 = [word for word, count in word_counts.items() if 3 <= count <= 5]
 rare_le_5 = len(hapax) + len(rare_2) + len(rare_3_5)
-
-print("RARE WORDS ANALYSIS")
-print("=" * 60)
-print(f"Hapax legomena (count=1):     {len(hapax):,} words ({hapax_pct:.1f}% of vocab)")
-print(f"Words appearing twice:        {len(rare_2):,} words")
-print(f"Words appearing 3-5 times:    {len(rare_3_5):,} words")
-print(f"\\nTotal rare words (≤5 times):  {rare_le_5:,} words ({(rare_le_5 / vocab_size) * 100:.1f}% of vocab)")
-print(f"\\nExamples of hapax legomena:")
-print(f"  {hapax[:10]}")""",
+""",
         language="python",
     )
 
-    st.code(
-        """#%%
-freq_distribution = Counter(word_counts.values())
-freq_bins = sorted(freq_distribution.keys())[:20]  # First 20 bins
-freq_counts = [freq_distribution[f] for f in freq_bins]
 
-plt.figure()
-plt.bar(freq_bins, freq_counts, color='steelblue', edgecolor='black')
-plt.xlabel('Word Frequency')
-plt.ylabel('Number of Words')
-plt.title('Distribution: How Many Words Appear X Times?', fontweight='bold')
-plt.xticks(freq_bins)
-plt.tight_layout()
-plt.savefig(os.path.join(FIG_DIR, "rare_words_distribution.png"), dpi=150)
-plt.close()
-plt.show()
-
-rare_stats = {
-    "hapax_count": len(hapax),
-    "hapax_pct": hapax_pct,
-    "rare_le_5": rare_le_5,
-    "rare_le_5_pct": (rare_le_5 / vocab_size) * 100,
-    "example_hapax": hapax[:10],
-}
-
-with open(os.path.join(FIG_DIR, "rare_words_stats.json"), "w") as f:
-    json.dump(rare_stats, f, indent=2)""",
-        language="python",
-    )
 
     st.subheader("2.4 Category Statistics")
     st.markdown("""
@@ -1342,10 +740,7 @@ with open(os.path.join(FIG_DIR, "rare_words_stats.json"), "w") as f:
         Die Ergebnisse werden als Dreifach-Balkenplot gespeichert (`category_statistics.png`).
         """)
     st.code(
-        """#%% md
-## 2.4 Category Statistics
-#%%
-categories = df['tag'].unique()
+        """categories = df['tag'].unique()
 
 category_stats = {}
 for cat in categories:
@@ -1363,30 +758,7 @@ for cat in categories:
         'vocab': cat_vocab,
         'has_number_pct': has_number_pct
     }
-#%%
-fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-
-avg_words_cat = [category_stats[cat]['avg_words'] for cat in categories]
-axes[0].bar(categories, avg_words_cat, color='steelblue')
-axes[0].set_title('Average Words per Song', fontweight='bold')
-axes[0].set_ylabel('Words')
-axes[0].set_xticklabels(categories, rotation=45)
-
-vocab_sizes = [category_stats[cat]['vocab'] for cat in categories]
-axes[1].bar(categories, vocab_sizes, color='coral')
-axes[1].set_title('Vocabulary Size per Genre', fontweight='bold')
-axes[1].set_ylabel('Unique Words')
-axes[1].set_xticklabels(categories, rotation=45)
-
-has_number_pct = [category_stats[cat]['has_number_pct'] for cat in categories]
-axes[2].bar(categories, has_number_pct, color='lightgreen')
-axes[2].set_title('Songs Containing Numbers (%)', fontweight='bold')
-axes[2].set_ylabel('Percentage')
-axes[2].set_xticklabels(categories, rotation=45)
-
-plt.tight_layout()
-fig.savefig(os.path.join(FIG_DIR, "category_statistics.png"), dpi=150)
-plt.show()""",
+""",
         language="python",
     )
 
@@ -1401,15 +773,7 @@ plt.show()""",
         Ausgabe der Top-15 pro N-Gramm-Typ und Speicherung als Plot `top15_ngrams.png`.
         """)
     st.code(
-        """#%% md
----
-# 3. N-gram Analysis
-
-In this chapter, we analyze n-grams — unigrams, bigrams, and trigrams — to explore common word patterns and recurring phrases.
-## 3.1 Unigram, Bigram, Trigram
-#%%
-def ngrams(tokens, n):
-    \"\"\"generate n-grams\"\"\"
+        """def ngrams(tokens, n):
     if n <= 0:
         return []
     iters = tee(tokens, n)
@@ -1417,8 +781,8 @@ def ngrams(tokens, n):
         for _ in range(i):
             next(it, None)
     return zip(*iters)
-#%%
-unigram_counts = Counter()
+    
+    unigram_counts = Counter()
 bigram_counts = Counter()
 trigram_counts = Counter()
 
@@ -1436,37 +800,7 @@ top_bigrams = pd.DataFrame(
 top_trigrams = pd.DataFrame(
     [(" ".join(k), v) for k, v in trigram_counts.most_common(15)],
     columns=["trigram", "count"]
-)
-#%%
-print("TOP 15 UNIGRAMS:")
-print("=" * 60)
-print(top_unigrams)
-#%%
-print("TOP 15 BIGRAMS:")
-print("=" * 60)
-print(top_bigrams)
-#%%
-print("TOP 15 TRIGRAMS:")
-print("=" * 60)
-print(top_trigrams)
-#%%
-fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-
-axes[0].barh(top_unigrams["word"][::-1], top_unigrams["count"][::-1])
-axes[0].set_title("Top 15 Unigrams", fontweight='bold')
-axes[0].set_xlabel("Frequency")
-
-axes[1].barh(top_bigrams["bigram"][::-1], top_bigrams["count"][::-1])
-axes[1].set_title("Top 15 Bigrams", fontweight='bold')
-axes[1].set_xlabel("Frequency")
-
-axes[2].barh(top_trigrams["trigram"][::-1], top_trigrams["count"][::-1])
-axes[2].set_title("Top 15 Trigrams", fontweight='bold')
-axes[2].set_xlabel("Frequency")
-
-plt.tight_layout()
-fig.savefig(os.path.join(FIG_DIR, "top15_ngrams.png"), dpi=150)
-plt.show()""",
+)""",
         language="python",
     )
 
@@ -1477,9 +811,7 @@ plt.show()""",
         Die Resultate werden als `top20_ngrams_per_artist.png` und `top_ngrams_per_genre.png` gespeichert.
         """)
     st.code(
-        """#%% md
-## 3.2 N-Grams per Artist/Genre
-#%%
+        """
 def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) -> pd.DataFrame:
     \"""
     returns, for each group (artist/tag), the most frequent n-gram along with its count.
@@ -1496,62 +828,7 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
         else:
             rows.append({label_col: label, "ngram": None, "count": 0, "songs": len(sub)})
     return pd.DataFrame(rows).sort_values([label_col]).reset_index(drop=True)
-#%%
-top_unigrams_artist = most_common_ngram_for_group(df, "artist", n=1).sort_values("count", ascending=False).head(20)
-top_bigrams_artist  = most_common_ngram_for_group(df, "artist", n=2).sort_values("count", ascending=False).head(20)
-top_trigrams_artist = most_common_ngram_for_group(df, "artist", n=3).sort_values("count", ascending=False).head(20)
-#%%
-# create labels
-top_unigrams_artist["label"] = top_unigrams_artist["artist"] + " - " + top_unigrams_artist["ngram"]
-top_bigrams_artist["label"]  = top_bigrams_artist["artist"]  + " - " + top_bigrams_artist["ngram"]
-top_trigrams_artist["label"] = top_trigrams_artist["artist"] + " - " + top_trigrams_artist["ngram"]
-
-
-fig, axes = plt.subplots(1, 3, figsize=(18, 7))
-
-axes[0].barh(top_unigrams_artist["label"][::-1], top_unigrams_artist["count"][::-1])
-axes[0].set_title("Top 20 Unigrams per Artist", fontweight='bold')
-axes[0].set_xlabel("Frequency")
-
-axes[1].barh(top_bigrams_artist["label"][::-1], top_bigrams_artist["count"][::-1])
-axes[1].set_title("Top 20 Bigrams per Artist", fontweight='bold')
-axes[1].set_xlabel("Frequency")
-
-axes[2].barh(top_trigrams_artist["label"][::-1], top_trigrams_artist["count"][::-1])
-axes[2].set_title("Top 20 Trigrams per Artist", fontweight='bold')
-axes[2].set_xlabel("Frequency")
-
-plt.tight_layout()
-fig.savefig(os.path.join(FIG_DIR, "top20_ngrams_per_artist.png"), dpi=150)
-plt.show()
-#%%
-top_unigrams_genre = most_common_ngram_for_group(df, "tag", n=1).sort_values("count", ascending=False)
-top_bigrams_genre  = most_common_ngram_for_group(df, "tag", n=2).sort_values("count", ascending=False)
-top_trigrams_genre = most_common_ngram_for_group(df, "tag", n=3).sort_values("count", ascending=False)
-#%%
-# create labels
-top_unigrams_genre["label"] = top_unigrams_genre["tag"] + " - " + top_unigrams_genre["ngram"]
-top_bigrams_genre["label"]  = top_bigrams_genre["tag"]  + " - " + top_bigrams_genre["ngram"]
-top_trigrams_genre["label"] = top_trigrams_genre["tag"] + " - " + top_trigrams_genre["ngram"]
-
-
-fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-
-axes[0].barh(top_unigrams_genre["label"][::-1], top_unigrams_genre["count"][::-1])
-axes[0].set_title("Top Unigrams per Genre", fontweight='bold')
-axes[0].set_xlabel("Frequency")
-
-axes[1].barh(top_bigrams_genre["label"][::-1], top_bigrams_genre["count"][::-1])
-axes[1].set_title("Top Bigrams per Genre", fontweight='bold')
-axes[1].set_xlabel("Frequency")
-
-axes[2].barh(top_trigrams_genre["label"][::-1], top_trigrams_genre["count"][::-1])
-axes[2].set_title("Top Trigrams per Genre", fontweight='bold')
-axes[2].set_xlabel("Frequency")
-
-plt.tight_layout()
-fig.savefig(os.path.join(FIG_DIR, "top_ngrams_per_genre.png"), dpi=150)
-plt.show()""",
+""",
         language="python",
     )
 
@@ -1595,35 +872,79 @@ plt.show()""",
 
     # --------------------------------------------------------------------------
     # GENRE DISTRIBUTION
+
     with tab_genre:
         st.subheader("GENRE DISTRIBUTION")
         img = os.path.join(FIG_DIR, "genre_distribution.png")
+        preview_text = """
+GENRE DISTRIBUTION
+============================================================
+pop: 14,100 songs (41.41%)
+rap: 9,723 songs (28.56%)
+rock: 6,375 songs (18.72%)
+rb: 1,531 songs (4.50%)
+misc: 1,450 songs (4.26%)
+country: 870 songs (2.56%)
+"""
+        st.code(preview_text, language="text")
+
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # TEXT STATISTICS
     with tab_text:
         st.subheader("TEXT STATISTICS")
         img = os.path.join(FIG_DIR, "text_statistics.png")
+        preview_text = """
+TEXT STATISTICS
+============================================================
+Total lyrics (songs):     34,049
+Total words:              10,596,323
+Average words/lyric:      311.21
+Shortest lyric:           8 words
+Longest lyric:            17434 words
+        """
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # TOKEN STATISTICS
     with tab_token:
         st.subheader("TOKEN STATISTICS")
         img = os.path.join(FIG_DIR, "token_statistics.png")
+        preview_text = """
+TOKEN STATISTICS
+============================================================
+Total lyrics (songs):     34,049
+Total tokens:             5,999,753
+Unique tokens:            127,555
+Average tokens/lyric:     176.21
+Shortest lyric:           4 tokens
+Longest lyric:            9578 tokens
+        """
+        st.markdown("""
+        Die unteren Diagramme zeigen die Häufigkeit der 15 häufigsten Wörter vor und nach dem Entfernen von Stoppwörtern. 
+        Wir können deutlich sehen, dass das Entfernen von Stoppwörtern einen signifikanten Unterschied macht: 
+        Das häufigste Wort nach dem Filtern erscheint vor dem Entfernen der Stoppwörter nicht einmal unter den 15 häufigsten Wörtern.
+        """)
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # TOP 15 WORDS BEFORE/AFTER STOPWORDS
+
     with tab_top15:
         st.subheader("TOP 15 WORDS – BEFORE & AFTER STOPWORDS")
         img = os.path.join(FIG_DIR, "top15_words_before_after_stopwords.png")
+        st.markdown("""
+        Die Plots zeigen die 15 häufigsten Wörter vor und nach Stopwort-Entfernung.
+        Das häufigste Wort nach dem Filtern erscheint nicht mehr in den ursprünglichen Top-15.
+                  """)
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # ZIPF’S LAW ANALYSIS
@@ -1636,20 +957,28 @@ plt.show()""",
             import json
             with open(stats, "r") as f:
                 z = json.load(f)
-            st.code(
-f"""ZIPF'S LAW ANALYSIS
-============================================================
-Fitted equation: f(r) = {z['C']:.2f} / r^{z['alpha']:.3f}
-Slope (α):         {z['alpha']:.4f}
-R^2 (fit quality): {z['r2']:.4f}
-Ideal slope:       -1.0
-Deviation:         {z['deviation']:.4f}""",
-                language="text",
-            )
 
+        st.markdown("""Das angepasste Zipf-Law-Modell weist eine Steigung von −0,83 mit einem 
+        Wert von 0,98 auf, was auf eine hervorragende Anpassung an die erwartete Verteilung hinweist.
+        Obwohl die Steigung etwas flacher ist als die ideale −1,0, 
+        deutet diese geringe Abweichung (0,17) darauf hin, dass die Häufigkeits-Rang-Beziehung in den Liedtexten dem Zipf-law sehr nahe kommt – 
+        häufige Wörter werden viel häufiger verwendet als seltene, wie es typischerweise in Liedtexten zu beobachten ist.
+            """)
         img = os.path.join(FIG_DIR, "zipf_loglog_and_top30.png")
+        preview_text = """
+ZIPF'S LAW ANALYSIS
+============================================================
+Fitted equation: f(r) = 788840.86 / r^0.828
+
+Model parameters:
+Slope (α):         -0.8284
+R^2 (fit quality): 0.9845
+Ideal Zipf slope:  -1.0000
+Deviation:         0.1716
+        """
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, caption="Zipf Log-Log + Top-30 Comparison", use_column_width=200)
+            st.image(img, caption="Zipf Log-Log + Top-30 Comparison", use_container_width=200)
 
     # --------------------------------------------------------------------------
     # RARE WORDS ANALYSIS
@@ -1660,51 +989,75 @@ Deviation:         {z['deviation']:.4f}""",
         if os.path.exists(stats):
             with open(stats, "r") as f:
                 r = json.load(f)
-            st.code(
-f"""RARE WORDS ANALYSIS
-============================================================
-Hapax legomena:         {r['hapax_count']:,}  ({r['hapax_pct']:.1f}% vocab)
-Rare words ≤5 times:    {r['rare_le_5']:,}  ({r['rare_le_5_pct']:.1f}% vocab)
-Examples:
-  {r['example_hapax']}""",
-                language="text",
-            )
 
         img = os.path.join(FIG_DIR, "rare_words_distribution.png")
+        st.markdown("""
+        Ein großer Teil des Vokabulars in den Liedtexten ist selten: 48,6 % sind Hapaxlegomena (kommen nur einmal vor) 
+        und 74,3 % aller Wörter kommen fünfmal oder weniger vor. 
+        Einige wenige Wörter werden häufig wiederholt, während die meisten Wörter einzigartig oder sehr selten sind.
+        """)
+
+        st.markdown("""
+        Die Verteilung zeigt, dass viele Wörter nur einmal oder sehr selten in Songtexten vorkommen. 
+        Das ist etwas überraschend, da man eher das Gegenteil erwarten würde: dass die meisten Wörter sehr häufig vorkommen und nur wenige Wörter selten. 
+        Bei genauerer Betrachtung der Hapaxlegomena zeigt sich jedoch, dass es sich dabei oft um Wörter wie „shitforeal”, „denimits”, „matey”, „yohoho”, 'yohohoyohoho', ‚hahaher‘, ‚swabs‘, ‚bosun‘, ‚yed‘, ‚affydavy‘] 
+        – also keine bedeutungsvollen Wörter im üblichen Sinne, sondern eher Zeichenfolgen oder erfundene Begriffe, die die Laute des Sängers nachahmen.
+        """)
+        st.code(
+            f"""RARE WORDS ANALYSIS
+        ============================================================
+        Hapax legomena:         {r['hapax_count']:,}  ({r['hapax_pct']:.1f}% vocab)
+        Rare words ≤5 times:    {r['rare_le_5']:,}  ({r['rare_le_5_pct']:.1f}% vocab)
+        Examples:
+          {r['example_hapax']}""",
+            language="text",
+        )
         if os.path.exists(img):
-            st.image(img, caption="Word Frequency Distribution", use_column_width=200)
+            st.image(img, caption="Word Frequency Distribution", use_container_width=200)
 
     # --------------------------------------------------------------------------
     # CATEGORY STATISTICS
     with tab_category:
         st.subheader("CATEGORY STATISTICS")
         img = os.path.join(FIG_DIR, "category_statistics.png")
+        st.markdown("""
+        Rap scheint über einen großen Wortschatz zu verfügen, was mit dem zuvor beobachteten Vorkommen seltener Wörter übereinstimmt. 
+        Ausserdem kommen Zahlen in Rap-Songs häufiger vor als in anderen Genres. 
+        Im Gegensatz dazu weisen Country-Songs tendenziell einen sehr kleinen Wortschatz auf. 
+        In den meisten Genres ist die durchschnittliche Anzahl der Wörter pro Song ziemlich ähnlich, 
+        obwohl Rap-Songs etwas länger sind und Songs, die als „Verschiedenes” (misc) klassifiziert sind, 
+        deutlich länger sind – allerdings lässt sich diese Kategorie nicht ohne Weiteres als spezifisches Genre interpretieren.
+        """)
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # TOP 15 N-GRAMS
     with tab_ngrams:
         st.subheader("TOP 15 N-GRAMS")
         img = os.path.join(FIG_DIR, "top15_ngrams.png")
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # TOP N-GRAMS PER ARTIST
     with tab_artist:
         st.subheader("TOP N-GRAMS PER ARTIST")
         img = os.path.join(FIG_DIR, "top20_ngrams_per_artist.png")
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
     # --------------------------------------------------------------------------
     # TOP N-GRAMS PER GENRE
     with tab_genres:
         st.subheader("TOP N-GRAMS PER GENRE")
         img = os.path.join(FIG_DIR, "top_ngrams_per_genre.png")
+        st.code(preview_text, language="text")
         if os.path.exists(img):
-            st.image(img, use_column_width=200)
+            st.image(img, use_container_width=200)
 
 
 
@@ -1732,67 +1085,8 @@ elif page == "5️⃣ Word Embedding":
     # =========================
     # 1. Train Model – DOKU
     # =========================
-    st.header("1. Train Model")
+    st.header("1. Train Word2Vec Model")
 
-    st.subheader("1.1 Import & Setup")
-    st.markdown("""
-    Import der benötigten Bibliotheken für:
-    - Datenverarbeitung (`pandas`, `numpy`),
-    - Word2Vec-Training (`gensim`),
-    - Visualisierung (`matplotlib`, `plotly`),
-    - Dimensionalitätsreduktion (`PCA`),
-    - TF-IDF und Ähnlichkeitsberechnungen (`sklearn`),
-    - sowie Hilfsfunktionen (`ast`, `os`).
-    """)
-    st.code(
-        """import pandas as pd
-import os
-import re
-import numpy as np
-from gensim.models import Word2Vec
-import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
-import plotly.graph_objects as go
-import ast
-from sklearn.feature_extraction.text import TfidfVectorizer
-import plotly.express as px
-from nltk.corpus import stopwords
-from sklearn.metrics.pairwise import cosine_similarity""",
-        language="python",
-    )
-
-    st.subheader("1.2 Load and prepare Data")
-    st.markdown("""
-    Relevante Spalten im Datensatz:
-    - `language_cld3` – erkannte Sprache (z.B. `en` für Englisch)
-    - `tokens` – Liste der Wörter eines Songs  
-
-    Es werden **nur englische Songs** verwendet und falls `tokens` als String gespeichert sind,
-    wieder in echte Python-Listen konvertiert.
-    """)
-    st.code(
-        """#%% md
-**Relevante Spalten:**
-- `language_cld3` — erkannte Sprache (typisch ISO-Code, z. B. `en` für Englisch)
-- `tokens` — Liste der Token (Wörter) der Lyrics pro Zeile
-
-**Hinweis:** Für Word2Vec müssen es **Listen von Strings** sein.
-#%%
-df = pd.read_csv("data/clean/data.csv")
-
-# Nur englische Songs
-df = df[df["language_cld3"] == "en"]
-
-# Tokens von String-Repräsentation zurück in Listen konvertieren
-if isinstance(df["tokens"].iloc[0], str):
-    df["tokens"] = df["tokens"].apply(ast.literal_eval)
-
-# Eingabedaten für Word2Vec: Liste von Token-Listen
-sentences = df["tokens"].dropna().tolist()""",
-        language="python",
-    )
-
-    st.subheader("1.3 Train Word2Vec Model")
     st.markdown("""
     **Ziel:** Lernen von Wortvektoren aus den Lyrics-Token mit `gensim.Word2Vec`.
 
@@ -1803,23 +1097,14 @@ sentences = df["tokens"].dropna().tolist()""",
     - `epochs=100` → 100 Trainingsdurchläufe für stabilere Vektoren
     """)
     st.code(
-        """#%% md
-## 1.2 Train Word2Vec Model
+        """l
 
 **Ziel:** Lernen von Wortvektoren aus den Lyrics-Token.
 **Bibliothek:** `gensim.models.Word2Vec`
 
-### Wichtige Parameter
 
-| Parameter       | Bedeutung |
-|----------------|-----------|
-| `sentences`    | Liste von Wortlisten (Token pro Song) |
-| `vector_size`  | Dimension der Vektoren |
-| `window`       | Kontextfenstergröße |
-| `min_count`    | Minimalhäufigkeit für Wörter |
-| `workers`      | Anzahl Threads |
-| `epochs`       | Trainingsdurchläufe |
-#%%
+
+
 model = Word2Vec(
     sentences=sentences,
     vector_size=50,
@@ -1828,12 +1113,26 @@ model = Word2Vec(
     workers=4,
     epochs=100
 )
-
-print("Model trained!")
-print("Vocabulary size:", len(model.wv))
-print("Vector size:", model.wv.vector_size)""",
+""",
         language="python",
     )
+    preview_text = """
+| Parameter       | Bedeutung |
+|----------------|-----------|
+| `sentences`    | Liste von Wortlisten (Token pro Song) |
+| `vector_size`  | Dimension der Vektoren |
+| `window`       | Kontextfenstergröße |
+| `min_count`    | Minimalhäufigkeit für Wörter |
+| `workers`      | Anzahl Threads |
+| `epochs`       | Trainingsdurchläufe |
+        """
+    st.code(preview_text, language="text")
+    st.markdown("""
+        Die unteren Diagramme zeigen die Häufigkeit der 15 häufigsten Wörter vor und nach dem Entfernen von Stoppwörtern. 
+        Wir können deutlich sehen, dass das Entfernen von Stoppwörtern einen signifikanten Unterschied macht: 
+        Das häufigste Wort nach dem Filtern erscheint vor dem Entfernen der Stoppwörter nicht einmal unter den 15 häufigsten Wörtern.
+        """)
+
 
     st.markdown("""
     **Ergebnis:**  
@@ -1841,230 +1140,6 @@ print("Vector size:", model.wv.vector_size)""",
     repräsentiert – Wörter mit ähnlichem Kontext liegen nah beieinander.
     """)
 
-    # =========================
-    # 2. Explore Embedding Space – DOKU
-    # =========================
-    st.header("2. Explore Embedding Space")
-
-    st.subheader("2.1 Similar Words & Kontext – Beispiel: 'love'")
-    st.markdown("""
-    Zuerst werden zu einem Wort (z.B. `love`) die ähnlichsten Wörter
-    per **Kosinus-Ähnlichkeit** gesucht (`model.wv.most_similar`),  
-    anschließend für Testwörter (`baby`, `love`, `happy`) grafisch dargestellt.
-    """)
-    st.code(
-        """#%% md
-## 2.1 Embedding Examples: 'love'
-#%%
-word = "love"
-if word in model.wv:
-    print(f"\\nVector for '{word}':", model.wv[word][:10])
-    print("\\nMost similar words to 'love':")
-    print(model.wv.most_similar(word, topn=5))
-else:
-    print(f"'{word}' not in vocabulary.")
-#%%
-def find_similar_words(word, model, top_n=5):
-    if word not in model.wv:
-        return None, None
-    similar = model.wv.most_similar(word, topn=top_n)
-    words = [w for w, _ in similar]
-    scores = [s for _, s in similar]
-    return words, scores
-
-
-test_words = ["baby", "love", "happy"]
-
-# Store results for plotting in next cell
-similar_results = {}
-
-for word in test_words:
-    print(f"\\n🔍 Finding words similar to '{word}'...")
-    words, scores = find_similar_words(word, model, top_n=5)
-
-    if words:
-        similar_results[word] = (words, scores)
-
-        for w, s in zip(words, scores):
-            bar = '█' * int(s * 10)
-            print(f"  {w:10} {bar} {s:.2f}")
-    else:
-        similar_results[word] = None
-        print(f"  '{word}' not in vocabulary.")
-#%%
-fig, axes = plt.subplots(1, len(test_words), figsize=(5 * len(test_words), 4))
-
-# Handle single-axis case
-if len(test_words) == 1:
-    axes = [axes]
-
-for ax, word in zip(axes, test_words):
-    result = similar_results[word]
-
-    if result:
-        words, scores = result
-        ax.barh(words, scores)
-        ax.set_title(f"'{word}'")
-        ax.set_xlabel("Similarity")
-        ax.invert_yaxis()
-    else:
-        ax.set_visible(False)
-
-fig.suptitle("Most Similar Words", fontsize=14)
-fig.tight_layout()
-plt.show()""",
-        language="python",
-    )
-
-    st.markdown("""
-    Interpretation:  
-    - `happy` – `sad` können hohe Ähnlichkeit haben, obwohl sie Gegenteile sind,  
-      weil Word2Vec **Kontextähnlichkeit**, nicht logische Gegensätze lernt.  
-    - `happy` – `happier` → gleiche Wortfamilie, grammatische Variante.  
-    - `love` – `loving` / `loves` → gleicher semantischer Kern, leicht anderer Kontext.
-    """)
-
-    st.subheader("2.1b 3D-Visualisierung der Nachbarn von 'love'")
-    st.code(
-        """#%%
-def explore_similar_words(word, model, top_n=10):
-
-    if word not in model.wv:
-        raise ValueError(f"'{word}' not in model vocabulary.")
-
-    similar = model.wv.most_similar(word, topn=top_n)
-    words = [word] + [w for w, _ in similar]
-    scores = [1.0] + [s for _, s in similar]
-
-    vectors = np.array([model.wv[w] for w in words])
-
-    # PCA auf 3 Dimensionen reduzieren (falls nötig)
-    if vectors.shape[1] > 3:
-        pca = PCA(n_components=3)
-        vectors_3d = pca.fit_transform(vectors)
-        axis_titles = ("PC1", "PC2", "PC3")
-    else:
-        vectors_3d = vectors
-        axis_titles = tuple(f"Dim{i+1}" for i in range(vectors.shape[1]))
-
-    sizes = np.array(scores) * 25
-    colors = np.array(scores)
-
-    fig = go.Figure(
-        data=[
-            go.Scatter3d(
-                x=vectors_3d[:, 0],
-                y=vectors_3d[:, 1],
-                z=vectors_3d[:, 2] if vectors_3d.shape[1] > 2 else np.zeros(len(words)),
-                mode="markers+text",
-                text=words,
-                textposition="top center",
-                marker=dict(
-                    size=sizes,
-                    color=colors,
-                    colorscale="viridis",
-                    showscale=True,
-                    colorbar=dict(title="Similarity"),
-                    line=dict(width=1, color="black"),
-                    symbol=["diamond"] + ["circle"] * (len(words) - 1)
-                ),
-                hovertemplate="<b>%{text}</b><br>Similarity: %{marker.color:.2f}<extra></extra>",
-            )
-        ]
-    )
-
-    fig.update_layout(
-        title=f"Similar Words to '{word}' (Top {top_n}) — Color/Size = Similarity",
-        scene=dict(
-            xaxis_title=axis_titles[0],
-            yaxis_title=axis_titles[1],
-            zaxis_title=axis_titles[2],
-        ),
-        height=600,
-        margin=dict(l=0, r=0, t=40, b=0),
-    )
-
-    return fig
-
-fig = explore_similar_words("love", model, top_n=30)
-fig.show()""",
-        language="python",
-    )
-
-    st.markdown("""
-    Die 3D-Darstellung zeigt **Cluster** um das Wort *love*:
-    - Zentrum: *love, loving, loves*  
-    - Rand: emotionale Substantive (*baby, babe, heart*)  
-    - Abstrakte Begriffe (*forever, always, never*) usw.
-    """)
-
-    st.subheader("2.2 Globaler Word-Embedding Space")
-    st.code(
-        """#%% md
-## 2.2 Embedding Space
-#%%
-def explore_embedding_space(model, n_words=30):
-    vocab = list(model.wv.index_to_key)
-    if len(vocab) == 0:
-        raise ValueError("The model has an empty vocabulary.")
-    n = min(n_words, len(vocab))
-    words = vocab[:n]
-
-    vectors = np.array([model.wv[w] for w in words])
-
-    if vectors.shape[1] > 3:
-        pca = PCA(n_components=3)
-        vectors_3d = pca.fit_transform(vectors)
-        axis_titles = ("PC1", "PC2", "PC3")
-    else:
-        vectors_3d = vectors
-        axis_titles = tuple(f"Dim{i+1}" for i in range(vectors.shape[1]))
-
-    distances = np.linalg.norm(vectors_3d, axis=1)
-
-    fig = go.Figure(
-        data=[
-            go.Scatter3d(
-                x=vectors_3d[:, 0],
-                y=vectors_3d[:, 1] if vectors_3d.shape[1] > 1 else np.zeros_like(distances),
-                z=vectors_3d[:, 2] if vectors_3d.shape[1] > 2 else np.zeros_like(distances),
-                mode="markers+text",
-                text=words,
-                textposition="top center",
-                marker=dict(
-                    size=np.clip(distances * 3, 4, 24),
-                    color=distances,
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Distance"),
-                ),
-                hovertemplate="<b>%{text}</b><br>Distance: %{marker.color:.2f}<extra></extra>",
-            )
-        ]
-    )
-
-    fig.update_layout(
-        title=f"Explore the Word Space (Top {n} words) — Size/Color = Distance from Origin",
-        scene=dict(
-            xaxis_title=axis_titles[0],
-            yaxis_title=axis_titles[1] if len(axis_titles) > 1 else "",
-            zaxis_title=axis_titles[2] if len(axis_titles) > 2 else "",
-        ),
-        height=600,
-        margin=dict(l=0, r=0, t=40, b=0),
-    )
-
-    return fig
-
-fig = explore_embedding_space(model, n_words=50)
-fig.show()""",
-        language="python",
-    )
-
-    st.markdown("""
-    Hier werden viele Wörter gleichzeitig im 3D-Raum gezeigt.  
-    Größe & Farbe codieren den Abstand vom Ursprung → „markantere“ Wörter stechen hervor.
-    """)
 
     # =========================
     # 3. TF-IDF + Dokument-Embeddings – DOKU
@@ -2076,9 +1151,7 @@ fig.show()""",
     werden die Wortvektoren mit **TF-IDF gewichtet** gemittelt.
     """)
     st.code(
-        """#%% md
-# 3. TF-IDF
-#%%
+        """
 tfidf_vect = TfidfVectorizer(
     tokenizer=lambda x: x,
     preprocessor=lambda x: x,
@@ -2112,7 +1185,6 @@ for i in range(X_tfidf.shape[0]):
 
 print("TF-IDF-Embeddings:", doc_emb_tfidf.shape)
 
-# Optional: Nullvektoren rausfiltern
 keep = np.linalg.norm(doc_emb_tfidf, axis=1) > 0
 df_use = df.reset_index(drop=True).loc[keep].reset_index(drop=True)
 emb_use = doc_emb_tfidf[keep]
@@ -2137,9 +1209,7 @@ print("Nach Filter:", emb_use.shape)""",
     """)
 
     st.code(
-        '''#%% md
-# 4. Embedding of whole songs
-#%%
+        '''
 GENRE_COL = "tag"
 
 def get_song_vector(tokens, w2v_model):
@@ -2158,16 +1228,14 @@ def get_song_vector(tokens, w2v_model):
 
     return np.mean(vectors, axis=0).astype(np.float32)
 
-# Nur Songs mit Tokens & Genre
 df_songs = df.dropna(subset=["tokens", GENRE_COL]).copy()
 
-# Embedding pro Song
 df_songs["embedding"] = df_songs["tokens"].apply(
     lambda toks: get_song_vector(toks, model)
 )
 
-X = np.vstack(df_songs["embedding"].values)        # (n_songs, embedding_dim)
-y = df_songs[GENRE_COL].astype(str).values         # (n_songs,)
+X = np.vstack(df_songs["embedding"].values)      
+y = df_songs[GENRE_COL].astype(str).values        
 
 print("Song embeddings shape:", X.shape)
 print("Number of songs:", len(y))
@@ -2176,120 +1244,6 @@ print("Example genres:", y[:10])
         language="python",
     )
 
-    st.code(
-        '''#%%
-def explore_doc_space(embeddings, labels=None, n_max=None):
-    """
-    Interaktiver 3D-Plot von Dokument-/Song-Embeddings.
-    Nutzt ggf. PCA auf 3 Dimensionen und färbt/skalieren nach Distanz vom Ursprung.
-    """
-    if embeddings is None or len(embeddings) == 0:
-        raise ValueError("Keine Embeddings übergeben.")
-
-    X = np.asarray(embeddings)
-    if n_max is not None:
-        X = X[:n_max]
-        if labels is not None:
-            labels = labels[:n_max]
-
-    # Auf 3 Dimensionen reduzieren (falls nötig)
-    if X.shape[1] > 3:
-        pca = PCA(n_components=3)
-        X3 = pca.fit_transform(X)
-        axis_titles = ("PC1", "PC2", "PC3")
-    else:
-        X3 = X
-        axis_titles = tuple(f"Dim{i+1}" for i in range(X.shape[1]))
-        # ggf. auf 3 Achsen auffüllen
-        if X3.shape[1] == 1:
-            X3 = np.hstack([X3, np.zeros((X3.shape[0], 2))])
-        elif X3.shape[1] == 2:
-            X3 = np.hstack([X3, np.zeros((X3.shape[0], 1))])
-
-    distances = np.linalg.norm(X3, axis=1)
-
-    if labels is None:
-        labels = [f"Doc {i}" for i in range(X3.shape[0])]
-
-    fig = go.Figure(
-        data=[
-            go.Scatter3d(
-                x=X3[:, 0],
-                y=X3[:, 1],
-                z=X3[:, 2],
-                mode="markers+text",
-                text=labels,
-                textposition="top center",
-                marker=dict(
-                    size=np.clip(distances * 3, 4, 24),
-                    color=distances,
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Distance"),
-                    opacity=0.9,
-                ),
-                hovertemplate="<b>%{text}</b><extra></extra>",
-            )
-        ]
-    )
-
-    fig.update_layout(
-        title="Explore the Song Space — Size/Color = Distance from Origin",
-        scene=dict(
-            xaxis_title=axis_titles[0],
-            yaxis_title=axis_titles[1] if len(axis_titles) > 1 else "",
-            zaxis_title=axis_titles[2] if len(axis_titles) > 2 else "",
-        ),
-        height=650,
-        margin=dict(l=0, r=0, t=40, b=0),
-    )
-    return fig
-
-embeddings = X
-
-# Labels: Titel oder Artist oder Tag
-df_use = df_songs.copy()
-labels = None
-for col in ["title", "artist", "tag"]:
-    if col in df_use.columns:
-        labels = df_use[col].astype(str).tolist()
-        break
-
-if labels is None:
-    labels = df_use.index.astype(str).tolist()
-
-fig_docs = explore_doc_space(embeddings, labels=labels, n_max=40)
-fig_docs.show()
-
-# PCA 3D nach Genre
-pca = PCA(n_components=3, random_state=42)
-X_3d = pca.fit_transform(X)
-
-df_plot = pd.DataFrame({
-    "pc1": X_3d[:, 0],
-    "pc2": X_3d[:, 1],
-    "pc3": X_3d[:, 2],
-    "genre": y.astype(str)
-})
-
-viridis_256 = px.colors.sample_colorscale("Viridis", np.linspace(0, 1, 6))
-
-fig = px.scatter_3d(
-    df_plot,
-    x="pc1",
-    y="pc2",
-    z="pc3",
-    color="genre",
-    opacity=0.3,
-    title="Songs in Word2Vec embedding space (PCA 3D)",
-    color_discrete_sequence=viridis_256
-)
-
-fig.update_traces(marker=dict(size=4))
-fig.show()
-''',
-        language="python",
-    )
 
     # =========================
     # 5. Save Model – DOKU
@@ -2305,10 +1259,7 @@ fig.show()
     """)
 
     st.code(
-        """#%% md
-# 5. Save Model
-#%%
-# 1) Save feature matrix X and label vector y
+        """
 os.makedirs("data/features", exist_ok=True)
 
 np.save("data/features/song_embeddings.npy", X)
@@ -2316,7 +1267,6 @@ np.save("data/features/song_labels.npy", y)
 
 print("Saved song embeddings and labels to 'data/features/'")
 
-# 2) Save metadata (optional but very useful)
 meta_cols = [GENRE_COL]
 for col in ["title", "artist", "id", "song_id"]:
     if col in df_songs.columns:
@@ -2325,7 +1275,6 @@ for col in ["title", "artist", "id", "song_id"]:
 df_songs[meta_cols].to_csv("data/features/song_metadata.csv", index=False)
 print("Saved song metadata to 'data/features/song_metadata.csv'")
 
-# 3) Save the trained Word2Vec model
 os.makedirs("models", exist_ok=True)
 model.save("models/word2vec_lyrics.model")
 print("Saved Word2Vec model to 'models/word2vec_lyrics.model'")""",
@@ -2497,41 +1446,9 @@ elif page == "6️⃣ Model Evaluation":
     # =========================
     st.header("1. Notebook-Workflow (kurz dokumentiert)")
 
-    st.subheader("1.1 Imports, Daten laden & Label-Encoding")
+    st.subheader("1.1 Label-Encoding")
     st.code(
-        """import numpy as np
-import pandas as pd
-import ast
-import os
-import joblib
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.metrics import (
-    classification_report, accuracy_score, balanced_accuracy_score,
-    confusion_matrix, f1_score
-)
-from sklearn.ensemble import RandomForestClassifier
-from sentence_transformers import SentenceTransformer
-import matplotlib.pyplot as plt
-import seaborn as sns
-import torch
-import re
-from gensim.models import Word2Vec
-
-df = pd.read_csv("data/clean/data.csv")
-
-df["tokens"] = df["tokens"].apply(ast.literal_eval)
-texts = df["tokens"]
-labels = df["tag"]
-
-CM_DIR = "documentation/model_evaluation"
-os.makedirs(CM_DIR, exist_ok=True)
-
-# Label-Encoding für Genres
+        """
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(labels)
 
@@ -2587,22 +1504,7 @@ y_pred_w2v_svc = clf_w2v_svc.predict(X_test_w2v)
 cm = confusion_matrix(y_test, y_pred_w2v_svc,
                       labels=label_encoder.transform(label_encoder.classes_))
 cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-
-plt.figure()
-sns.heatmap(
-    cm_norm,
-    annot=True,
-    fmt=".2f",
-    cmap="Blues",
-    xticklabels=label_encoder.classes_,
-    yticklabels=label_encoder.classes_,
-)
-plt.xlabel("Predicted label")
-plt.ylabel("True label")
-plt.title("Normalized Confusion Matrix – Word2Vec + LinearSVC")
-plt.tight_layout()
-plt.savefig(os.path.join(CM_DIR, "cm_w2v_LinearSVC.png"), dpi=150)
-plt.show()""",
+""",
         language="python",
     )
 
@@ -2636,14 +1538,7 @@ y_pred_tfidf_svc = clf_tfidf_svc.predict(X_test_tfidf)
 cm = confusion_matrix(y_test, y_pred_tfidf_svc,
                       labels=label_encoder.transform(label_encoder.classes_))
 cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-
-plt.figure()
-sns.heatmap(cm_norm, annot=True, fmt=".2f", cmap="Blues",
-            xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
-plt.title("Normalized Confusion Matrix – TF-IDF + LinearSVC")
-plt.tight_layout()
-plt.savefig(os.path.join(CM_DIR, "cm_tfidf_LinearSVC.png"), dpi=150)
-plt.show()""",
+""",
         language="python",
     )
 
@@ -2688,32 +1583,17 @@ y_pred_st_svc = clf_st_svc.predict(X_test_emb_st)
 cm = confusion_matrix(y_test, y_pred_st_svc,
                       labels=np.arange(len(label_encoder.classes_)))
 cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-
-plt.figure()
-sns.heatmap(
-    cm_norm,
-    annot=True,
-    fmt=".2f",
-    cmap="Blues",
-    xticklabels=label_encoder.classes_,
-    yticklabels=label_encoder.classes_,
-)
-plt.title("SentenceTransformer (MiniLM) + LinearSVC")
-plt.tight_layout()
-plt.savefig(os.path.join(CM_DIR, "cm_st_LinearSVC.png"), dpi=150)
-plt.show()""",
+""",
         language="python",
     )
 
     st.subheader("1.5 Speichern des finalen Modells & der Evaluationsergebnisse")
     st.code(
-        """# bestes Modell (MiniLM + LinearSVC) speichern
+        """
 os.makedirs("models", exist_ok=True)
 joblib.dump(clf_st_svc, "models/clf_st_svc.joblib")
 joblib.dump(label_encoder, "models/label_encoder.joblib")
 
-# eval_results.json + confusion_matrix_best.npy
-# (Metriken und Confusion Matrix des besten Modells)
 MODELS_DIR = Path("models")
 MODELS_DIR.mkdir(exist_ok=True)
 
@@ -2746,145 +1626,339 @@ np.save(cm_path, cm_best)""",
             return None
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-
     eval_results = load_eval_results()
     if eval_results is None:
-        st.info(
-            "Keine `eval_results.json` gefunden.\n\n"
-            "Bitte führe zuerst `model-evaluation.ipynb` aus und speichere die "
-            "Ergebnisse als `models/eval_results.json`."
-        )
+            st.info(
+                "Keine `eval_results.json` gefunden.\n\n"
+                "Bitte führe zuerst `model-evaluation.ipynb` aus und speichere die "
+                "Ergebnisse als `models/eval_results.json`."
+            )
     else:
-        # bestes Modell-Label aus JSON
-        best_model_name = eval_results.get("best_model")
+            # bestes Modell-Label aus JSON
+            best_model_name = eval_results.get("best_model")
 
-        # JSON → DataFrame (alle Modelle außer 'best_model')
-        rows = []
-        for model_name, vals in eval_results.items():
-            if model_name == "best_model":
-                continue
-            row = {
-                "model": model_name,
-                "embedding": vals.get("embedding", ""),
-                "classifier": vals.get("classifier", ""),
-                "accuracy": vals.get("accuracy", None),
-                "balanced_accuracy": vals.get("balanced_accuracy", None),
-                "f1_macro": vals.get("f1_macro", None),
-            }
-            rows.append(row)
+            # JSON → DataFrame (alle Modelle außer 'best_model')
+            rows = []
+            for model_name, vals in eval_results.items():
+                if model_name == "best_model":
+                    continue
+                row = {
+                    "model": model_name,
+                    "embedding": vals.get("embedding", ""),
+                    "classifier": vals.get("classifier", ""),
+                    "accuracy": vals.get("accuracy", None),
+                    "balanced_accuracy": vals.get("balanced_accuracy", None),
+                    "f1_macro": vals.get("f1_macro", None),
+                }
+                rows.append(row)
 
-        if not rows:
-            st.warning("Keine Modell-Metriken in `eval_results.json` gefunden.")
-        else:
-            df_eval = pd.DataFrame(rows)
-            df_eval = df_eval.sort_values(by="f1_macro", ascending=False)
-
-            st.subheader("2.1 Übersicht über alle Modelle")
-
-            def highlight_best(row):
-                if best_model_name is not None and row["model"] == best_model_name:
-                    return ["background-color: #C7F6FF; color:black; font-weight: bold"] * len(row)
-                return [""] * len(row)
-
-            styled = (
-                df_eval.style
-                .format(
-                    {
-                        "accuracy": "{:.3f}",
-                        "balanced_accuracy": "{:.3f}",
-                        "f1_macro": "{:.3f}",
-                    },
-                    na_rep="-",
-                )
-                .apply(highlight_best, axis=1)
-            )
-            st.dataframe(styled, use_container_width=True)
-
-            st.markdown("---")
-            st.subheader("2.2 F1-Macro nach Modell")
-            st.bar_chart(df_eval.set_index("model")["f1_macro"])
-
-            # --- Detailansicht pro Modell ---
-            st.markdown("---")
-            st.subheader("2.3 Details zu einem Modell (inkl. Confusion Matrix)")
-
-            model_names = df_eval["model"].tolist()
-            default_index = 0
-            if best_model_name in model_names:
-                default_index = model_names.index(best_model_name)
-
-            model_choice = st.selectbox(
-                "Modell auswählen:",
-                model_names,
-                index=default_index,
-            )
-
-            row = df_eval[df_eval["model"] == model_choice].iloc[0]
-
-            c1, c2, c3 = st.columns(3)
-            c1.metric(
-                "Accuracy",
-                f"{row['accuracy']:.3f}" if pd.notna(row["accuracy"]) else "-",
-            )
-            c2.metric(
-                "Balanced Accuracy",
-                f"{row['balanced_accuracy']:.3f}"
-                if pd.notna(row["balanced_accuracy"])
-                else "-",
-            )
-            c3.metric(
-                "F1-Macro",
-                f"{row['f1_macro']:.3f}" if pd.notna(row["f1_macro"]) else "-",
-            )
-
-            st.write(f"**Embedding:** {row['embedding']}")
-            st.write(f"**Classifier:** {row['classifier']}")
-
-            # Confusion-Matrix-Bild für das ausgewählte Modell
-            st.markdown("---")
-            st.subheader("Confusion Matrix – ausgewähltes Modell")
-
-            cm_img_path = os.path.join(CM_DIR, f"cm_{row['model']}.png")
-            if os.path.exists(cm_img_path):
-                st.image(cm_img_path, use_column_width=200)
+            if not rows:
+                st.warning("Keine Modell-Metriken in `eval_results.json` gefunden.")
             else:
-                st.info(
-                    f"Keine Confusion-Matrix-Grafik für `{row['model']}` gefunden.\n\n"
-                    f"Erwarte Datei: `{cm_img_path}`."
-                )
+                df_eval = pd.DataFrame(rows)
+                df_eval = df_eval.sort_values(by="f1_macro", ascending=False)
 
-            # --- Bestes Modell extra hervorheben ---
-            if best_model_name is not None:
+                # --------------------------------------------------
+                # Hilfsfunktion: deutsche Modellbeschreibung
+                # --------------------------------------------------
+                def get_model_description_de(model_name: str) -> str:
+                    name = model_name.lower()
+
+                    if "w2v" in name:
+                        return """
+    ### 📌 Word2Vec – Zusammenfassung der Klassifikatoren
+
+    **LinearSVC**
+    - Accuracy: ~0.577  
+    - Balanced Accuracy: ~0.508  
+    LinearSVC liefert die stabilste Gesamtleistung. Dominante Genres (rap, pop) werden zuverlässig erkannt, und die faire Klassenverteilung ist am besten. Minderheitsgenres bleiben weiterhin schwierig.
+
+    **Logistische Regression**
+    - Accuracy: ~0.463  
+    - Balanced Accuracy: ~0.551  
+    Höchste Balanced Accuracy – sehr faire und ausgewogene Klassifikation über alle Genres hinweg. Allerdings sinkt die Gesamtgenauigkeit, da große Klassen schwieriger zu unterscheiden sind.
+
+    **Random Forest**
+    - Accuracy: ~0.648  
+    - Balanced Accuracy: ~0.405  
+    Höchste Accuracy, aber deutlichste Verzerrung zugunsten der Mehrheitsklassen (pop, rap). Sehr schwach für Minderheitsgenres.
+
+    **Fazit (Word2Vec)**
+    - Beste Gesamtperformance: **LinearSVC**  
+    - Beste Fairness: **Logistische Regression**  
+    - Höchste Accuracy, aber am wenigsten fair: **Random Forest**
+    """
+
+                    if "tfidf" in name:
+                        return """
+    ### 📌 TF-IDF – Zusammenfassung der Klassifikatoren
+
+    **LinearSVC**
+    - Accuracy: ~0.593  
+    - Balanced Accuracy: ~0.458  
+    Sehr gute Gesamtperformance mit stabiler Accuracy. Minderheitsgenres bleiben jedoch schwierig.
+
+    **Logistische Regression**
+    - Accuracy: ~0.551  
+    - Balanced Accuracy: ~0.535  
+    Beste Fairness über alle Genres – ausgewogene Klassifikation, besserer Recall für kleinere Klassen wie *misc* und *rb*.
+
+    **Random Forest**
+    - Accuracy: ~0.581  
+    - Balanced Accuracy: ~0.405  
+    Akzeptable Accuracy, aber deutliche Probleme bei Minderheitsgenres (insbesondere *country* und *rb*).
+
+    **Fazit (TF-IDF)**
+    - Beste Gesamtperformance: **LinearSVC**  
+    - Beste Fairness: **Logistische Regression**  
+    - Höchste Accuracy, aber am wenigsten fair: **Random Forest**
+    """
+
+                    if "st" in name or "transformer" in name or "minilm" in name:
+                        return """
+    ### 📌 Transformer (SentenceTransformer MiniLM) – Zusammenfassung
+
+    **LinearSVC**
+    - Accuracy: ~0.572  
+    - Balanced Accuracy: ~0.515  
+    Beste Gesamtbalance zwischen Genauigkeit und Fairness. Dominante Genres (rap, pop) werden zuverlässig erkannt, Minderheitsgenres profitieren von den reicheren Transformer-Embeddings.
+
+    **Logistische Regression**
+    - Accuracy: ~0.475  
+    - Balanced Accuracy: ~0.543  
+    Höchste Balanced Accuracy – sehr faire Verteilung über alle Klassen. Die Gesamtgenauigkeit ist etwas niedriger, vor allem wegen der schwierigen *pop*-Klasse.
+
+    **Random Forest**
+    - Accuracy: ~0.624  
+    - Balanced Accuracy: ~0.343  
+    Sehr hohe Accuracy, aber extrem schlechte Fairness gegenüber Minderheitsgenres (country, rb). Starker Bias zugunsten der Mehrheitsklassen.
+
+    **Fazit (Transformer)**
+    - Beste Gesamtperformance: **LinearSVC**  
+    - Beste Fairness: **Logistische Regression**  
+    - Höchste Accuracy, aber schlechteste Fairness: **Random Forest**
+    """
+
+                    return ""
+
+                # --------------------------------------------------
+                # 2.1 Übersicht über alle Modelle
+                # --------------------------------------------------
+                st.subheader("2.1 Übersicht über alle Modelle")
+
+                # (hier könntest du z.B. df_eval anzeigen, wenn gewünscht)
+                # st.dataframe(df_eval)
+
                 st.markdown("---")
-                st.subheader("2.4 🎯 Bestes Modell (laut F1-Macro)")
+                st.subheader("2.2 F1-Macro nach Modell")
+                st.bar_chart(df_eval.set_index("model")["f1_macro"])
 
-                best_row_df = df_eval[df_eval["model"] == best_model_name]
-                if not best_row_df.empty:
-                    br = best_row_df.iloc[0]
-                    st.write(
-                        f"- **Name:** `{best_model_name}`  \n"
-                        f"- **Embedding:** {br['embedding']}  \n"
-                        f"- **Classifier:** {br['classifier']}  \n"
-                        f"- **Accuracy:** {br['accuracy']:.3f}  \n"
-                        f"- **F1-macro:** {br['f1_macro']:.3f}"
-                        + (
-                            f"  \n- **Balanced Accuracy:** {br['balanced_accuracy']:.3f}"
-                            if pd.notna(br["balanced_accuracy"])
-                            else ""
-                        )
-                    )
+                # --------------------------------------------------
+                # 2.3 Details zu den Modellen (Tabs)
+                # --------------------------------------------------
+                st.markdown("---")
+                st.subheader("2.3 Details zu den Modellen (inkl. Confusion Matrices)")
 
-                    # Confusion-Matrix-Bild des besten Modells
-                    best_cm_img = os.path.join(CM_DIR, f"cm_{best_model_name}.png")
-                    st.subheader("Confusion Matrix – bestes Modell")
-                    if os.path.exists(best_cm_img):
-                        st.image(best_cm_img, use_column_width=200)
+
+                # ---------- TAB-NAME FORMATIERUNG ----------
+                def format_model_label(model_name: str) -> str:
+                    name = model_name.lower()
+
+                    # Embedding bestimmen
+                    if "w2v" in name:
+                        emb = "Word2Vec"
+                    elif "tfidf" in name:
+                        emb = "TF-IDF"
+                    elif "st" in name or "transformer" in name or "minilm" in name:
+                        emb = "Transformer (MiniLM)"
                     else:
-                        st.info(
-                            f"Keine Confusion-Matrix-Grafik für das beste Modell "
-                            f"`{best_model_name}` gefunden.\n\n"
-                            f"Erwarte Datei: `{best_cm_img}`."
-                        )
+                        emb = "?"
+
+                    # Klassifikator bestimmen
+                    if "svc" in name:
+                        clf = "LinearSVC"
+                    elif "logreg" in name or "logistic" in name:
+                        clf = "Logistic Regression"
+                    elif "rf" in name or "forest" in name:
+                        clf = "Random Forest"
+                    else:
+                        clf = "?"
+
+                    return f"{emb} – {clf}"
+
+
+                # ---------- FIXE TAB-SORTIERUNG ----------
+                sort_order = [
+                    ("Word2Vec", "LinearSVC"),
+                    ("Word2Vec", "Logistic Regression"),
+                    ("Word2Vec", "Random Forest"),
+                    ("TF-IDF", "LinearSVC"),
+                    ("TF-IDF", "Logistic Regression"),
+                    ("TF-IDF", "Random Forest"),
+                    ("Transformer (MiniLM)", "LinearSVC"),
+                    ("Transformer (MiniLM)", "Logistic Regression"),
+                    ("Transformer (MiniLM)", "Random Forest"),
+                ]
+
+                # Modellnamen + Anzeigenamen
+                models_with_labels = []
+                for model_key in df_eval["model"]:
+                    label = format_model_label(model_key)
+                    models_with_labels.append((model_key, label))
+
+                # Nach definierter Reihenfolge sortieren
+                sorted_models = []
+                for emb, clf in sort_order:
+                    target = f"{emb} – {clf}"
+                    for m_key, label in models_with_labels:
+                        if label == target:
+                            sorted_models.append((m_key, label))
+
+                # Falls Modelle nicht gefunden → ignorieren
+                if not sorted_models:
+                    st.warning("Keine Modelle gefunden, um Tabs zu erzeugen.")
+                else:
+                    # ---------- TABS ERZEUGEN ----------
+                    tabs = st.tabs([label for (_, label) in sorted_models])
+
+
+                    # ---------- MODELL-BESCHREIBUNGEN (DEUTSCH) ----------
+                    def get_model_description_de(model_name: str) -> str:
+                        name = model_name.lower()
+
+                        if "w2v" in name:
+                            return """
+                ### 📌 Word2Vec – Zusammenfassung der Klassifikatoren
+
+                **LinearSVC**
+                - Accuracy: ~0.577  
+                - Balanced Accuracy: ~0.508  
+                LinearSVC liefert die stabilste Gesamtleistung. Dominante Genres (rap, pop) werden zuverlässig erkannt, und die faire Klassenverteilung ist am besten.
+
+                **Logistische Regression**
+                - Accuracy: ~0.463  
+                - Balanced Accuracy: ~0.551  
+                Beste Fairness und höchste Balanced Accuracy über alle Genres hinweg.
+
+                **Random Forest**
+                - Accuracy: ~0.648  
+                - Balanced Accuracy: ~0.405  
+                Sehr hohe Accuracy, aber starker Bias zugunsten der Mehrheitsklassen.
+
+                **Fazit**
+                - Beste Gesamtperformance: **LinearSVC**  
+                - Beste Fairness: **Logistische Regression**  
+                - Höchste Accuracy, aber verzerrt: **Random Forest**
+                """
+
+                        if "tfidf" in name:
+                            return """
+                ### 📌 TF-IDF – Zusammenfassung der Klassifikatoren
+
+                **LinearSVC**
+                - Accuracy: ~0.593  
+                - Balanced Accuracy: ~0.458  
+                Sehr gute Gesamtperformance mit stabiler Accuracy.
+
+                **Logistische Regression**
+                - Accuracy: ~0.551  
+                - Balanced Accuracy: ~0.535  
+                Beste Fairness, besserer Recall für kleinere Genres.
+
+                **Random Forest**
+                - Accuracy: ~0.581  
+                - Balanced Accuracy: ~0.405  
+                Schwach bei Minderheitsgenres.
+
+                **Fazit**
+                - Beste Gesamtperformance: **LinearSVC**  
+                - Beste Fairness: **Logistische Regression**  
+                - Höchste Accuracy, aber verzerrt: **Random Forest**
+                """
+
+                        if "st" in name or "transformer" in name or "minilm" in name:
+                            return """
+                ### 📌 Transformer (MiniLM) – Zusammenfassung der Klassifikatoren
+
+                **LinearSVC**
+                - Accuracy: ~0.572  
+                - Balanced Accuracy: ~0.515  
+                Beste Balance zwischen Genauigkeit und Fairness.
+
+                **Logistische Regression**
+                - Accuracy: ~0.475  
+                - Balanced Accuracy: ~0.543  
+                Fairste und ausgewogenste Klassifikation.
+
+                **Random Forest**
+                - Accuracy: ~0.624  
+                - Balanced Accuracy: ~0.343  
+                Sehr hohe Accuracy, aber extrem geringe Fairness.
+
+                **Fazit**
+                - Beste Gesamtperformance: **LinearSVC**
+                - Beste Fairness: **Logistische Regression**
+                - Höchste Accuracy, aber schlechteste Fairness: **Random Forest**
+                """
+                        return ""
+
+
+                    # ---------- TAB-INHALTE ----------
+                    for i, (model_key, label) in enumerate(sorted_models):
+                        with tabs[i]:
+                            row = df_eval[df_eval["model"] == model_key].iloc[0]
+
+                            # -- Metriken --
+                            c1, c2, c3 = st.columns(3)
+                            c1.metric("Accuracy", f"{row['accuracy']:.3f}")
+                            c2.metric("Balanced Accuracy", f"{row['balanced_accuracy']:.3f}")
+                            c3.metric("F1-Macro", f"{row['f1_macro']:.3f}")
+
+                            st.write(f"**Embedding:** {row['embedding']}")
+                            st.write(f"**Classifier:** {row['classifier']}")
+
+                            # -- Confusion Matrix --
+                            st.markdown("---")
+                            st.subheader("Confusion Matrix")
+                            cm_img_path = os.path.join(CM_DIR, f"cm_{row['model']}.png")
+
+                            if os.path.exists(cm_img_path):
+                                st.image(cm_img_path, use_container_width=True)
+                            else:
+                                st.info(f"Keine Grafik gefunden: `{cm_img_path}`")
+
+                            # -- Beschreibung --
+                            desc = get_model_description_de(model_key)
+                            if desc:
+                                st.markdown("---")
+                                st.markdown(desc)
+                # --------------------------------------------------
+                # 3. Finale Modellwahl (einmal, außerhalb der Tabs)
+                # --------------------------------------------------
+                st.markdown("---")
+                st.subheader("3. Finale Modellwahl & Modellselektion")
+
+                st.markdown("""
+    Über alle drei Embedding-Strategien – **Word2Vec**, **TF-IDF** und **Transformer (MiniLM)** – zeigt sich ein konsistentes Muster:
+
+    - **LinearSVC** liefert die stabilste Gesamtperformance, unabhängig vom Embedding.  
+    - **Logistische Regression** verbessert systematisch die Klassenbalance und den Recall für Minderheitsgenres.  
+    - **Random Forest** erreicht oft hohe Accuracy, ist aber deutlich zugunsten der Mehrheitsklassen verzerrt und erzielt eine niedrige Balanced Accuracy.
+
+    ### 🎯 Final gewähltes Modell
+
+    **SentenceTransformer (MiniLM) + LinearSVC**
+
+    Dieses Modell bietet:
+
+    - solide Accuracy (~0.57)  
+    - die beste Balanced Accuracy unter den leistungsstarken Modellen (~0.52)  
+    - gute Performance sowohl für dominante als auch für Minderheitsgenres  
+    - robuste Generalisierung dank semantisch reichhaltiger Transformer-Embeddings  
+
+    In Kombination mit **LinearSVC**, das sehr stabil auf hochdimensionalen Embeddings arbeitet, ergibt sich ein Modell, das eine gute Balance zwischen Performance und Fairness über alle Genres hinweg bietet.
+    """)
+
 
     st.info(
         "Alle Metriken und Confusion Matrices stammen aus dem Notebook "
@@ -2920,34 +1994,19 @@ elif page == "7️⃣ Text Classification":
     # -----------------------------
     # 1. Imports and Setup – Doku
     # -----------------------------
-    st.header("1. Imports and Setup (Dokumentation Notebook)")
+    st.header("1. Load Trained Model and Label Encoder")
 
-    st.subheader("1.1 Import Libraries")
-    st.code(
-        """import joblib
-import numpy as np
-from sentence_transformers import SentenceTransformer""",
-        language="python",
-    )
-
-    st.subheader("1.2 Load Trained Model and Label Encoder")
     st.markdown("""
     Laden des im Kapitel *Model Evaluation* gewählten **finalen Klassifikationsmodells**
     (SentenceTransformer + LinearSVC) sowie des `LabelEncoder` für die Genres.
     """)
     st.code(
-        """#%% md
-## 1.2 Load Trained Model and Label Encoder
-#%%
-# Load classifier and label encoder
+        """
 clf_st_svc = joblib.load("models/clf_st_svc.joblib")
 label_encoder = joblib.load("models/label_encoder.joblib")
 
-# Load SentenceTransformer model
 st_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
-
-print("Model and label encoder loaded.")
-print("Genres:", list(label_encoder.classes_))""",
+""",
         language="python",
     )
 
@@ -2962,16 +2021,14 @@ print("Genres:", list(label_encoder.classes_))""",
     und über den **LinearSVC** klassifiziert.
     """)
     st.code(
-        """#%% md
-## 2.1 Classification of one Lyric
-#%%
+        """
 lyrics = \"\"\" 
 Yeah I'm driving through the city late at night,
 lights low, bass loud, trouble on my mind...
 \"\"\"
-#%%
+
 lyrics_clean = lyrics.strip()
-#%%
+
 embedding_tensor = st_model.encode(
     [lyrics_clean],
     batch_size=16,
@@ -2980,13 +2037,11 @@ embedding_tensor = st_model.encode(
     convert_to_tensor=True,
 )
 
-# convert to python list
 embedding = embedding_tensor.tolist()
-#%%
+
 pred_idx = clf_st_svc.predict(embedding)[0]
 pred_genre = label_encoder.inverse_transform([pred_idx])[0]
-
-print("Predicted genre:", pred_genre)""",
+""",
         language="python",
     )
 
@@ -2996,16 +2051,14 @@ print("Predicted genre:", pred_genre)""",
     klassifiziert, um das Modellverhalten zu demonstrieren.
     """)
     st.code(
-        """#%% md
-## 2.2 Classification of more Lyrics
-#%%
+        """
 texts = [
     "Yeah, I'm riding through the city with my homies late at night...",
     "Baby, I miss you every single day, I can't get you off my mind...",
     "Whiskey on the dashboard, small town lights and dusty roads...",
     "The crowd is roaring, the drums are loud, the stage is burning..."
 ]
-#%%
+
 emb = st_model.encode(
     [t.strip() for t in texts],
     convert_to_numpy=False,
@@ -3013,14 +2066,11 @@ emb = st_model.encode(
     show_progress_bar=False,
 )
 emb_list = emb.tolist()
-#%%
+
 pred_idx = clf_st_svc.predict(emb_list)
 pred_genres = label_encoder.inverse_transform(pred_idx)
 
-for t, g in zip(texts, pred_genres):
-    print(t[:80] + "...")
-    print("→", g)
-    print("-" * 50)""",
+""",
         language="python",
     )
 
@@ -3203,13 +2253,9 @@ elif page == "8️⃣ Text-Generierung":
     auf die relevanten Spalten (`lyrics`, `tag`) geworfen.
     """)
     st.code(
-        """import pandas as pd
-import markovify
-
-#%%
+        """
 df = pd.read_csv("data/clean/data.csv")
 
-print(df.shape)
 df[["lyrics", "tag"]].head()""",
         language="python",
     )
@@ -3220,12 +2266,9 @@ df[["lyrics", "tag"]].head()""",
     zusammengefügt, der als Trainingsbasis für das Markov-Modell dient.
     """)
     st.code(
-        """#%% md
-## 1.2 Data Preparation
-#%%
+        """
 all_lyrics = df["lyrics"].dropna().tolist()
 
-# Join all lyrics into one big text
 corpus_text = "\\n".join(all_lyrics)""",
         language="python",
     )
@@ -3250,10 +2293,7 @@ corpus_text = "\\n".join(all_lyrics)""",
     So bleiben die generierten Zeilen **knapp** und erinnern an typische Songtext-Zeilen.
     """)
     st.code(
-        """#%% md
-# 2. Markov chain model
-## 2.1 Build Model
-#%%
+        """
 text_model_all = markovify.Text(corpus_text, state_size=2)""",
         language="python",
     )
@@ -3261,9 +2301,7 @@ text_model_all = markovify.Text(corpus_text, state_size=2)""",
     st.subheader("2.2 Generate a few lines")
     st.markdown("Generiert einige Beispiel-Zeilen aus dem **gesamten Korpus**.")
     st.code(
-        """#%% md
-## 2.2 Generate a few lines
-#%%
+        """
 print("=== Generated lyrics (full corpus) ===\\n")
 for _ in range(10):
     line = text_model_all.make_short_sentence(max_chars=90, tries=100)
@@ -3279,9 +2317,7 @@ for _ in range(10):
     gebaut. Die Funktion `generate_markov_lyrics` kapselt dieses Verhalten.
     """)
     st.code(
-        """#%% md
-## 2.3 Generate Genre-specific Lyrics
-#%%
+        """
 def generate_markov_lyrics(genre=None, num_lines=10):
     \"\"\"Generate Markov-based lyrics from the full corpus or a specific genre.\"\"\"
     if genre is None:
@@ -3300,7 +2336,6 @@ def generate_markov_lyrics(genre=None, num_lines=10):
         if line:
             print(line)
 
-# Beispiel: 10 Zeilen nur aus Country-Songs
 generate_markov_lyrics(genre="country", num_lines=10)""",
         language="python",
     )
@@ -3315,14 +2350,11 @@ generate_markov_lyrics(genre="country", num_lines=10)""",
     - `generate_song` – baut einen Song aus `[Verse 1]`, `[Chorus]`, `[Verse 2]`
     """)
     st.code(
-        """#%% md
-## 2.4 Generate Lyrics with Verse and Chorus
-#%%
+        """
 def generate_line(model, max_tries=100):
     line = model.make_short_sentence(max_chars=90, tries=100)
     return line if line else ""
 
-#%%
 def generate_verse(model, num_lines=8):
     lines = []
     for _ in range(num_lines):
@@ -3331,7 +2363,6 @@ def generate_verse(model, num_lines=8):
             lines.append(line)
     return lines
 
-#%%
 def generate_chorus(model, num_lines=4):
     lines = []
     base_line = generate_line(model)
@@ -3346,7 +2377,6 @@ def generate_chorus(model, num_lines=4):
             lines.append(line if line else base_line)
     return lines
 
-#%%
 def generate_song(model):
     verse1 = generate_verse(model)
     chorus = generate_chorus(model)
@@ -3359,7 +2389,6 @@ def generate_song(model):
     print("\\n[Verse 2]")
     print("\\n".join(verse2))
 
-#%%
 genre = "country"
 subset = df[df["tag"] == genre]["lyrics"].dropna().tolist()
 text_model_genre = markovify.Text("\\n".join(subset), state_size=2)

@@ -47,9 +47,7 @@ dataset = load_dataset("sebastiandizon/genius-song-lyrics", split="train")""",
         """
 subset_fraction = 1
 
-
 subset_size = int(len(dataset) * subset_fraction / 100)
-
 
 output_dir = "data/raw"
 os.makedirs(output_dir, exist_ok=True)
@@ -70,20 +68,15 @@ output_path = os.path.join(output_dir, f"lyrics_subset_{subset_fraction}pct.csv"
         """
 dataset = dataset.shuffle(seed=42)
 
-dataset_small = dataset.select(range(subset_size))
-
-print(f"Dataset loaded successfully with {len(dataset_small):,} entries.")""",
+dataset_small = dataset.select(range(subset_size))""",
         language="python"
     )
 
     st.subheader("2.2 Convert to pandas DataFrame")
-    st.markdown("Konvertiere das Subset in ein `pandas.DataFrame` und gib Basis-Statistiken aus.")
+    st.markdown("Konvertiere das Subset in ein `pandas.DataFrame`.")
     st.code(
         """
-df = dataset_small.to_pandas()
-
-print(f"DataFrame shape: {df.shape}")
-print(f"Number of Songs: {len(df):,} | Artists: {df['artist'].nunique():,} | Genres: {df['tag'].nunique():,}")""",
+df = dataset_small.to_pandas()""",
         language="python"
     )
 
@@ -91,28 +84,7 @@ print(f"Number of Songs: {len(df):,} | Artists: {df['artist'].nunique():,} | Gen
     st.markdown("Speichere das Subset als CSV-Datei im definierten Ausgabeverzeichnis.")
     st.code(
         """
-df.to_csv(output_path, index=False)
-
-print(f"Subset saved to: {output_path}")""",
-        language="python"
-    )
-
-    st.header("3. Preview of the dataset")
-
-    st.markdown("""
-    Zum Abschluss wird ein kurzer Überblick über die ersten Zeilen und die **Genre-Verteilung** gegeben.
-    """)
-
-    st.subheader("3.1 Genre-Verteilung")
-    st.code(
-        """print("\\nGENRE DISTRIBUTION")
-print("=" * 60)
-
-category_counts = df['tag'].value_counts().sort_values(ascending=False)
-
-for tag, count in category_counts.items():
-    pct = (count / len(df)) * 100
-    print(f"{tag}: {count:,} songs ({pct:.2f}%)")""",
+df.to_csv(output_path, index=False)""",
         language="python"
     )
 

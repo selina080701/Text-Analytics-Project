@@ -4,21 +4,27 @@ import streamlit as st
 import markovify
 
 def show_text_generation_page():
-    st.title("8️⃣ Text-Generierung – Markov Chain Lyrics")
+    st.title("8️⃣ Kapitel 8 - Lyrics Generation: Genius Song Lyrics (1%)")
 
-    st.markdown("""
-    **Lyrics Generation: Genius Song Lyrics (1%)**  
-    Dataset: 34'049 Songs · 26'408 Artists · 6 Genres  
-    Genres: Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous  
+    st.markdown(""" 
+    **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
+    **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
 
     **Purpose:**  
     Generierung neuer, stilkonsistenter Songtexte mithilfe eines einfachen
     **Markov-Chain-Modells**, das auf den bestehenden Lyrics trainiert wird.
 
-    Das Notebook unterstützt:
-    - Generierung aus dem **gesamten Korpus**
-    - **Genre-spezifische** Lyrics (z. B. nur *country*, nur *rap*)
+    Unterstützte Optionen:
+    - Generierung aus dem **kompletten Datensatz**
+    - **Genre-spezifische** Generierung
     """)
+
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`text-generation.ipynb`. Die grundlegende Vorgehensweise zur Markov-basierten "
+        "Lyrics-Generierung wurde dort entwickelt. Die Streamlit-App übernimmt diese Logik "
+        "und ermöglicht eine interaktive Generierung neuer Songzeilen und Songs."
+    )
 
     # =========================
     # 1. Imports and Setup – DOKU
@@ -57,6 +63,18 @@ corpus_text = "\\n".join(all_lyrics)""",
     # 2. Markov chain model – DOKU
     # =========================
     st.header("2. Markov Chain Model")
+
+    st.subheader("2.0 Kurze Einordnung: Markov-Ketten")
+
+    st.markdown("""
+    Markov-Modelle arbeiten nur mit lokalen Übergangswahrscheinlichkeiten:  
+    Die nächste Zeile hängt also immer nur vom aktuellen Zustand bzw. den letzten Wörtern ab.  
+    Trotz dieser Einfachheit entstehen oft stilistische Muster, die an die Original-Lyrics erinnern.
+
+    Für wirklich kohärente, inhaltlich konsistente Songs wären allerdings komplexere neuronale 
+    Sprachmodelle nötig. In diesem Kapitel geht es bewusst um eine leichtgewichtige, gut 
+    erklärbare Demo.
+    """)
 
     st.subheader("2.1 Build Model")
     st.markdown("""
@@ -175,12 +193,6 @@ text_model_genre = markovify.Text("\\n".join(subset), state_size=2)
 
 generate_song(text_model_genre)""",
         language="python",
-    )
-
-    st.info(
-        "Oben ist der komplette Markov-Workflow aus dem Notebook dokumentiert. "
-        "Im nächsten Abschnitt gibt es eine kleine interaktive Lyrics-Generierung "
-        "direkt in der App."
     )
 
     # =================================================== #
@@ -302,9 +314,3 @@ generate_song(text_model_genre)""",
                 "\n".join(verse2)
             )
 
-    st.info(
-        "Die Markov-Kette nutzt nur lokale Übergangswahrscheinlichkeiten, "
-        "erzeugt aber trotzdem stilistische Muster, die an die Original-Lyrics erinnern. "
-        "Für wirklich kohärente Songs wären neuronale Sprachmodelle nötig – "
-        "hier geht es um eine leichtgewichtige, erklärbare Demo."
-    )

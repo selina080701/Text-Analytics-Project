@@ -10,12 +10,12 @@ def show_model_evaluation_page():
     import numpy as np
     import pandas as pd
 
-    st.title("6️⃣ Model Evaluation – Vergleich der Modelle")
+    st.title("6️⃣ Kapitel 6 - Model Evaluation: Genius Song Lyrics Subset (1%)")
 
     st.markdown(
         """
-        **Model Evaluation: Genius Song Lyrics Subset (1%)**  
-        Dataset: 34'049 Songs | 26'408 Artists | 6 Genres  
+        **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
+        **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
 
         **Embeddings:**  
         - Word2Vec (self-trained)  
@@ -37,11 +37,15 @@ def show_model_evaluation_page():
         - Klassifikationsberichte (im Notebook)  
         - Normalisierte Confusion Matrices (als PNG gespeichert)  
 
-        Alle Trainings- und Auswertungsschritte laufen im Notebook  
-        `model-evaluation.ipynb`.  
-        Die App lädt nur die fertigen Artefakte aus dem Ordner `models/` und
-        `documentation/model_evaluation/`.
         """
+    )
+
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`model-evaluation.ipynb`. Das Training der Modelle sowie die Berechnung aller Metriken "
+        "und Confusion Matrices wurden vollständig im Notebook durchgeführt und als Ergebnisse "
+        "gespeichert. Die Streamlit-App lädt diese Ergebnisse "
+        "ausschließlich und visualisiert sie – ohne die Modelle erneut zu trainieren."
     )
 
     # =========================
@@ -206,13 +210,6 @@ eval_file.write_text(json.dumps(results, indent=2), encoding="utf-8")
 cm_path = MODELS_DIR / "confusion_matrix_best.npy"
 np.save(cm_path, cm_best)""",
         language="python",
-    )
-
-    st.info(
-        "Oben ist der Notebook-Workflow für die Modelle grob dokumentiert. "
-        "Im nächsten Abschnitt lädt die App nur die gespeicherten Ergebnisse "
-        "(`models/eval_results.json`, `documentation/model_evaluation/cm_*.png`, …) "
-        "und visualisiert sie."
     )
 
     # =================================================== #
@@ -561,10 +558,3 @@ np.save(cm_path, cm_best)""",
 
     In Kombination mit **LinearSVC**, das sehr stabil auf hochdimensionalen Embeddings arbeitet, ergibt sich ein Modell, das eine gute Balance zwischen Performance und Fairness über alle Genres hinweg bietet.
     """)
-
-
-    st.info(
-        "Alle Metriken und Confusion Matrices stammen aus dem Notebook "
-        "`model-evaluation.ipynb`. In der App findet **kein erneutes Training** statt – "
-        "es werden ausschließlich die gespeicherten Artefakte geladen und visualisiert."
-    )

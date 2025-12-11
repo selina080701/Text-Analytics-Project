@@ -17,6 +17,13 @@ def show_cleaning_page():
     Ziel ist eine saubere Textspalte, die sich für **NLP** und **statistische Analysen** eignet.
     """)
 
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`data-cleaning.ipynb`. Die Bereinigung der Lyrics wurde vollständig im Notebook "
+        "durchgeführt. Die Streamlit-App lädt lediglich die dort erzeugte bereinigte CSV-Datei "
+        "und stellt ausgewählte Ergebnisse dar – ohne die Daten erneut zu bereinigen."
+    )
+
     # -----------------------------------
     # 1. Dataset Overview (Dokumentation)
     # -----------------------------------
@@ -141,12 +148,6 @@ df = df.rename(columns={"lyrics_clean": "lyrics"})""",
         language="python"
     )
 
-    st.info(
-        "Obiger Abschnitt beschreibt nur den **Notebook-Workflow**. "
-        "Die eigentliche Bereinigung (Cleaning) wurde im Jupyter Notebook ausgeführt. "
-        "Im folgenden Abschnitt werden die **bereits gereinigten Daten** aus der gespeicherten CSV geladen."
-    )
-
     # -------------------------------------------------
     # 4. Bereits gereinigte Daten aus CSV laden
     # -------------------------------------------------
@@ -197,9 +198,3 @@ df = df.rename(columns={"lyrics_clean": "lyrics"})""",
                 f"Durchschnittliche Länge: {int(df_clean['lyrics_len'].mean()):,} Zeichen  \n"
                 f"Median: {int(df_clean['lyrics_len'].median()):,} Zeichen"
             )
-
-        st.info(
-            "Alle oben angezeigten Inhalte stammen aus der **bereits vom Notebook bereinigten CSV-Datei**. "
-            "In der Streamlit-App werden die Daten nur geladen und inspiziert – "
-            "es findet **keine erneute Datenbereinigung** statt."
-        )

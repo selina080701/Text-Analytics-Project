@@ -11,6 +11,9 @@ def show_word_embedding_page():
     st.title("5️⃣ Kapitel 5 – Word Embedding: Genius Song Lyrics Subset (1%)")
 
     st.markdown("""
+    **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
+    **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
+    
     **Purpose:**  
     Erstellung und Exploration von **Word Embeddings** für Songtexte.  
 
@@ -20,10 +23,14 @@ def show_word_embedding_page():
     - Songtexte über TF-IDF + Word2Vec auf **Dokument-Embeddings** abgebildet
     - und diese im Embedding-Space analysiert.
 
-    Wie in den vorherigen Kapiteln:
-    - Das **Notebook** übernimmt Training & schwere Berechnungen  
-    - Die **Streamlit-App** dokumentiert nur den Code und lädt am Ende die fertigen Ergebnisse.
     """)
+
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`word-embedding.ipynb`. Das Word2Vec-Modell und die Song-Embeddings wurden dort "
+        "trainiert und als Dateien gespeichert. Die Streamlit-App lädt diese Inhalte lediglich "
+        "und visualisiert die Ergebnisse – ohne das Modell erneut zu trainieren."
+    )
 
     # =========================
     # 1. Train Model – DOKU
@@ -224,11 +231,6 @@ print("Saved Word2Vec model to 'models/word2vec_lyrics.model'")""",
         language="python",
     )
 
-    st.info(
-        "Oben ist der komplette Notebook-Workflow dokumentiert. "
-        "Im nächsten Abschnitt werden nur die fertig berechneten Artefakte geladen – "
-        "kein erneutes Training in der Streamlit-App."
-    )
 
     # =================================================== #
     # 📁 NOTEBOOK-RESULTATE – Word Embeddings
@@ -334,9 +336,3 @@ print("Saved Word2Vec model to 'models/word2vec_lyrics.model'")""",
 
         except Exception as e:
             st.warning(f"PCA-Visualisierung konnte nicht erstellt werden: {e}")
-
-    st.info(
-        "Alle oben gezeigten Resultate basieren auf den im Notebook gespeicherten Artefakten "
-        "(`models/word2vec_lyrics.model`, `data/features/song_embeddings.npy`, ...). "
-        "Die Streamlit-App lädt sie nur und visualisiert sie – es wird **kein Modell in der App neu trainiert**."
-    )

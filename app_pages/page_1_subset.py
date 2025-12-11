@@ -14,6 +14,12 @@ def show_subset_page():
     eines **kleineren zufälligen Subsets** (z.B. 1%) als lokale CSV-Datei.
     """)
 
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`load-data-subset.ipynb`. Alle Berechnungen wurden dort ausgeführt. "
+        "Die Streamlit-App lädt lediglich die erzeugten Dateien und visualisiert die Ergebnisse."
+    )
+
     # -----------------------------
     # 1. Dokumentation / Notebook
     # -----------------------------
@@ -110,11 +116,6 @@ for tag, count in category_counts.items():
         language="python"
     )
 
-    st.info(
-        "Hinweis: Dieser Abschnitt zeigt die **Dokumentation** des Notebooks. "
-        "Die eigentlichen Berechnungen (Download, Sampling, Speichern) laufen im Jupyter Notebook. "
-        "Im nächsten Abschnitt werden die **tatsächlichen Resultate** aus der vom Notebook gespeicherten CSV geladen."
-    )
 
     # ----------------------------------------
     # 2. Resultate aus Notebook einlesen
@@ -157,9 +158,3 @@ for tag, count in category_counts.items():
             report_lines.append(f"{genre}: {count:,} songs ({pct:.2f}%)")
 
         st.text("\n".join(report_lines))
-
-        st.info(
-            "Die oben angezeigten Werte stammen **direkt aus der vom Notebook erzeugten CSV-Datei**. "
-            "In der Streamlit-App wird dazu nur die Datei gelesen – keine neuen Downloads oder "
-            "aufwendigen Berechnungen."
-        )

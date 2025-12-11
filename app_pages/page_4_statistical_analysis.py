@@ -9,14 +9,7 @@ def show_statistical_analysis_page():
 
     st.markdown("""
             **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
-
-            **Genres:**
-            - Rap / Hip-Hop
-            - Rock
-            - Pop
-            - R&B (Rhythm and Blues)
-            - Country
-            - Miscellaneous (verschiedene andere Genres)
+            **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
 
             **Purpose:**  
             Statistische Muster in den Songtexten untersuchen:
@@ -29,6 +22,14 @@ def show_statistical_analysis_page():
             Die eigentlichen Berechnungen und Plots laufen im Notebook und werden als PNG/JSON
             im Ordner `documentation/statistical_analysis` gespeichert.
             """)
+
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`statistical-analysis.ipynb`. Alle statistischen Auswertungen und Visualisierungen "
+        "wurden vollständig im Notebook berechnet und als PNG/JSON gespeichert. "
+        "Die Streamlit-App lädt diese Inhalte lediglich und zeigt sie an – ohne die Analysen "
+        "erneut auszuführen."
+    )
 
     # -----------------------------
     # 1. Dataset Overview
@@ -274,12 +275,6 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
     return pd.DataFrame(rows).sort_values([label_col]).reset_index(drop=True)
 """,
         language="python",
-    )
-
-    st.info(
-        "Dieser Abschnitt dokumentiert vollständig den Statistical-Analysis-Workflow im Notebook. "
-        "Die erzeugten PNG- und JSON-Dateien werden anschließend in der App (Tabs) nur noch geladen "
-        "und angezeigt – ohne erneute Berechnung."
     )
 
     st.markdown("Alle Resultate wurden im Notebook berechnet und als Grafiken gespeichert.")

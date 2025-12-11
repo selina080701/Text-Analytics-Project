@@ -6,6 +6,7 @@ def show_tokenization_page():
 
     st.markdown("""
     **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
+    **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
 
     **Purpose:**  
     Vorbereitung der Textdaten für weitere Analysen, indem Songtexte in einzelne Tokens
@@ -13,6 +14,14 @@ def show_tokenization_page():
     Diese Schritte sorgen für eine saubere und strukturierte Darstellung der Texte und bilden
     die Grundlage für nachgelagerte NLP- und Statistik-Analysen.
     """)
+
+    st.info(
+        "**Hinweis:** Dieser Abschnitt dokumentiert die Schritte aus dem zugehörigen Notebook "
+        "`tokenization.ipynb`. Die Tokenisierung der Lyrics sowie das Entfernen von Stopwörtern "
+        "wurden vollständig im Notebook ausgeführt. Die Streamlit-App lädt lediglich die dort "
+        "erzeugten Daten und visualisiert ausgewählte Ergebnisse – ohne die Tokenisierung erneut "
+        "durchzuführen."
+    )
 
     # -----------------------------
     # 1. Preparation (Dokumentation)

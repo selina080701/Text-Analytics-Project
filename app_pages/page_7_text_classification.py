@@ -6,12 +6,11 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 
 def show_text_classification_page():
-    st.title("7️⃣ Text Classification – Genre Vorhersage")
+    st.title("7️⃣ Kapitel 7 - Text Classification: Genius Song Lyrics (1%)")
 
-    st.markdown("""
-    **Text Classification: Genius Song Lyrics (1%)**  
-    **Dataset:** 34'049 Songs · 26'408 Artists · 6 Genres  
-    Genres: *Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous*  
+    st.markdown(""" 
+    **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
+    **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
 
     **Purpose:**  
     Verwendung des im Notebook `model-evaluation.ipynb` gewählten **besten Modells**,
@@ -25,6 +24,13 @@ def show_text_classification_page():
     **Ausgewähltes Modell:**  
     > SentenceTransformer (**all-MiniLM-L6-v2**) + **LinearSVC**  
     """)
+
+    st.info(
+        "**Hinweis:** Dieser Abschnitt basiert auf dem zugehörigen Notebook "
+        "`text-classification.ipynb`. Das dort geladene und vorbereitete Modell wird in "
+        "der Streamlit-App lediglich angewendet, um neue Lyrics zu klassifizieren – "
+        "ohne erneutes Training."
+    )
 
     # -----------------------------
     # 1. Imports and Setup – Doku
@@ -247,9 +253,3 @@ pred_genres = label_encoder.inverse_transform(pred_idx)
                     }
                 )
                 st.dataframe(df_results, use_container_width=True)
-
-        st.info(
-            "Diese Seite nutzt **genau das im Notebook trainierte Modell** "
-            "(SentenceTransformer *all-MiniLM-L6-v2* + LinearSVC). "
-            "In der App wird **nichts neu trainiert**, sondern nur geladen und angewendet."
-        )

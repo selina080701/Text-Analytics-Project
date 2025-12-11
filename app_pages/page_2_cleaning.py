@@ -70,8 +70,6 @@ df = pd.read_csv(input_path)""",
 
     st.subheader("2.2 Define and Apply Cleaning Function")
     st.markdown("""
-    ### 2.2 Define and Apply Cleaning Function
-
     Die Cleaning-Funktion bereitet den Text in drei Schritten vor:
 
     1. **Entfernen aller Inhalte zwischen eckigen Klammern**  
@@ -102,7 +100,7 @@ df["lyrics_clean"] = df["lyrics"].apply(clean_lyrics)""",
         language="python"
     )
 
-    st.subheader("2.4 Preview Cleaned Lyrics")
+    st.subheader("2.3 Preview Cleaned Lyrics")
     st.markdown("""
     Nach Anwendung der Cleaning-Funktion sind:
     - Metadaten-Tags (z.B. `[Intro]`, `[Verse]`) entfernt  

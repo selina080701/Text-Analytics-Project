@@ -54,7 +54,7 @@ st_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
     # -----------------------------
     # 2. Classification – Doku
     # -----------------------------
-    st.header("2. Classification (Notebook-Prototyp)")
+    st.header("2. Classification")
 
     st.subheader("2.1 Classification of one Lyric")
     st.markdown("""
@@ -114,24 +114,6 @@ pred_genres = label_encoder.inverse_transform(pred_idx)
 """,
         language="python",
     )
-
-    st.subheader("2.3 Interpretation (Notebook)")
-    st.markdown("""
-    Die im Notebook gezeigten Vorhersagen wirken **intuitiv**:
-
-    - *„City + homies + late night“* → eher **Rock**  
-      (könnte auch Rap sein, aber die Stimmung ist eher „rebellisch/rockig“)
-    - *„I miss you every single day“* → **Country**  
-      (klassisches Heartbreak-Thema)
-    - *„Whiskey + dusty roads + small town“* → eindeutig **Country**
-    - *„Crowd, drums, stage is burning“* → **Pop**  
-      (klare Stadion-/Performance-Energie)
-
-    **Fazit:**  
-    Das Modell weist Genres auf Basis kurzer Texte den typischen lyrischen Themen
-    sehr plausibel zu. Selbst knappe Ausschnitte reichen, um stilistische Hinweise
-    sinnvoll zu nutzen.
-    """)
 
     st.markdown("---")
 
@@ -253,3 +235,21 @@ pred_genres = label_encoder.inverse_transform(pred_idx)
                     }
                 )
                 st.dataframe(df_results, use_container_width=True)
+
+        st.subheader("2.3 Interpretation")
+        st.markdown("""
+        Die im Notebook gezeigten Vorhersagen wirken **intuitiv**:
+
+        - *„City + homies + late night“* → **Rock**  
+          (könnte auch Rap sein, aber die Stimmung ist eher „rebellisch/rockig“)
+        - *„I miss you every single day“* → **Country**  
+          (klassisches Heartbreak-Thema)
+        - *„Whiskey + dusty roads + small town“* → eindeutig **Country**
+        - *„Crowd, drums, stage is burning“* → **Pop**  
+          (klare Stadion-/Performance-Energie)
+
+        **Fazit:**  
+        Das Modell weist Genres auf Basis kurzer Texte den typischen lyrischen Themen
+        sehr plausibel zu. Selbst knappe Ausschnitte reichen, um stilistische Hinweise
+        sinnvoll zu nutzen.
+        """)

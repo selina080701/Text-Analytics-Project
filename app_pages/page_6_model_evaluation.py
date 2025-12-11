@@ -346,8 +346,18 @@ np.save(cm_path, cm_best)""",
                 # --------------------------------------------------
                 st.subheader("2.1 Übersicht über alle Modelle")
 
-                # (hier könntest du z.B. df_eval anzeigen, wenn gewünscht)
-                # st.dataframe(df_eval)
+                st.dataframe(
+                    df_eval[
+                        ["model", "embedding", "classifier", "accuracy", "balanced_accuracy", "f1_macro"]
+                    ].reset_index(drop=True)
+                    .style.format(
+                        {
+                            "accuracy": "{:.3f}",
+                            "balanced_accuracy": "{:.3f}",
+                            "f1_macro": "{:.3f}",
+                        }
+                    )
+                )
 
                 st.markdown("---")
                 st.subheader("2.2 F1-Macro nach Modell")

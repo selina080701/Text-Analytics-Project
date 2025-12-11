@@ -64,19 +64,19 @@ corpus_text = "\\n".join(all_lyrics)""",
     # =========================
     st.header("2. Markov Chain Model")
 
-    st.subheader("2.0 Kurze Einordnung: Markov-Ketten")
+    st.subheader("2.1 Kurze Einordnung: Markov-Ketten")
 
     st.markdown("""
-    Markov-Modelle arbeiten nur mit lokalen Übergangswahrscheinlichkeiten:  
-    Die nächste Zeile hängt also immer nur vom aktuellen Zustand bzw. den letzten Wörtern ab.  
-    Trotz dieser Einfachheit entstehen oft stilistische Muster, die an die Original-Lyrics erinnern.
+    Markov-Modelle arbeiten nur mit lokalen Übergangswahrscheinlichkeiten: Die nächste Zeile hängt also immer nur 
+    vom aktuellen Zustand bzw. den letzten Wörtern ab. Trotz dieser Einfachheit entstehen oft stilistische Muster, 
+    die an die Original-Lyrics erinnern.
 
     Für wirklich kohärente, inhaltlich konsistente Songs wären allerdings komplexere neuronale 
     Sprachmodelle nötig. In diesem Kapitel geht es bewusst um eine leichtgewichtige, gut 
     erklärbare Demo.
     """)
 
-    st.subheader("2.1 Build Model")
+    st.subheader("2.2 Build Model")
     st.markdown("""
     Aus dem gesamten Textkorpus wird ein **Markov-Chain-Modell** mit
     `state_size=2` gebaut.  
@@ -96,7 +96,7 @@ text_model_all = markovify.Text(corpus_text, state_size=2)""",
         language="python",
     )
 
-    st.subheader("2.2 Generate a few lines")
+    st.subheader("2.3 Generate a few lines")
     st.markdown("Generiert einige Beispiel-Zeilen aus dem **gesamten Korpus**.")
     st.code(
         """
@@ -108,7 +108,7 @@ for _ in range(10):
         language="python",
     )
 
-    st.subheader("2.3 Genre-specific Lyrics")
+    st.subheader("2.4 Genre-specific Lyrics")
     st.markdown("""
     Für eine **genre-spezifische** Generierung wird zunächst ein Subset der
     Lyrics nach Tag (`df["tag"]`) gefiltert und daraus ein neues Markov-Modell
@@ -138,7 +138,7 @@ generate_markov_lyrics(genre="country", num_lines=10)""",
         language="python",
     )
 
-    st.subheader("2.4 Lyrics with Verse and Chorus")
+    st.subheader("2.5 Lyrics with Verse and Chorus")
     st.markdown("""
     Für komplexere Songstrukturen werden Hilfsfunktionen definiert:
 

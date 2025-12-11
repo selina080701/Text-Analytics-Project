@@ -6,6 +6,7 @@ import joblib
 from gensim.models import Word2Vec
 import plotly.express as px
 from sklearn.decomposition import PCA
+import pandas as pd
 
 def show_word_embedding_page():
     st.title("5️⃣ Kapitel 5 – Word Embedding: Genius Song Lyrics Subset (1%)")
@@ -47,14 +48,7 @@ def show_word_embedding_page():
     - `epochs=100` → 100 Trainingsdurchläufe für stabilere Vektoren
     """)
     st.code(
-        """l
-
-**Ziel:** Lernen von Wortvektoren aus den Lyrics-Token.
-**Bibliothek:** `gensim.models.Word2Vec`
-
-
-
-
+        """
 model = Word2Vec(
     sentences=sentences,
     vector_size=50,
@@ -66,17 +60,25 @@ model = Word2Vec(
 """,
         language="python",
     )
-    preview_text = """
-| Parameter       | Bedeutung |
-|----------------|-----------|
-| `sentences`    | Liste von Wortlisten (Token pro Song) |
-| `vector_size`  | Dimension der Vektoren |
-| `window`       | Kontextfenstergröße |
-| `min_count`    | Minimalhäufigkeit für Wörter |
-| `workers`      | Anzahl Threads |
-| `epochs`       | Trainingsdurchläufe |
-        """
-    st.code(preview_text, language="text")
+
+
+    df = pd.DataFrame({
+        "Parameter": [
+            "sentences", "vector_size", "window",
+            "min_count", "workers", "epochs"
+        ],
+        "Bedeutung": [
+            "Liste von Wortlisten (Token pro Song)",
+            "Dimension der Vektoren",
+            "Kontextfenstergrösse",
+            "Minimalhäufigkeit für Wörter",
+            "Anzahl Threads",
+            "Trainingsdurchläufe"
+        ]
+    })
+
+    st.dataframe(df)
+
     st.markdown("""
         Die unteren Diagramme zeigen die Häufigkeit der 15 häufigsten Wörter vor und nach dem Entfernen von Stoppwörtern. 
         Wir können deutlich sehen, dass das Entfernen von Stoppwörtern einen signifikanten Unterschied macht: 
@@ -155,7 +157,7 @@ print("Nach Filter:", emb_use.shape)""",
 
     st.markdown("""
     Alternative: Song-Embeddings als einfacher Durchschnitt der Wortvektoren (`get_song_vector`),
-    anschließend Visualisierung im 3D-Raum und per PCA.
+    anschliessend Visualisierung im 3D-Raum und per PCA.
     """)
 
     st.code(

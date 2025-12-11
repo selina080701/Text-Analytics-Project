@@ -55,7 +55,7 @@ for col in ["words", "tokens"]:
     st.subheader("1.2 Descriptive Statistics")
     st.markdown("""
             Zuerst wird die **Genre-Verteilung** analysiert und als Balkendiagramm geplottet.
-            Anschließend werden **Text- und Token-Statistiken** berechnet
+            Anschliessend werden **Text- und Token-Statistiken** berechnet
             (total, min, avg, max) und jeweils als kleine Übersichtsgrafik gespeichert.
             """)
     st.code(
@@ -122,11 +122,11 @@ type_token_ratio = vocab_size / len(all_tokens)
     st.markdown(r"""
         **Bedeutung der Parameter:**
 
-        - \( f(r) \) = Häufigkeit des Wortes mit Rang \( r \)
-        - \( \alpha \) = Exponent bzw. Steigung (typischer Idealwert für natürliche Sprache ≈ 1.0)
-        - \( C \) = Normierungskonstante
+        - f(r) = Häufigkeit des Wortes mit Rang r
+        - α = Exponent bzw. Steigung (typischer Idealwert für natürliche Sprache ≈ 1.0)
+        - C = Normierungskonstante
 
-        Wenn \( \alpha = 1.0 \), dann gilt:
+        Wenn α = 1.0, dann gilt:
 
         - das Wort auf Rang 2 tritt **halb so häufig** auf wie das Wort auf Rang 1
         - Rang 3 tritt **ein Drittel so häufig** auf
@@ -179,7 +179,7 @@ rare_le_5 = len(hapax) + len(rare_2) + len(rare_3_5)
             Berechnung von Kennzahlen **pro Genre** (Tag):  
             - Anzahl Songs  
             - Gesamt- und Durchschnittswörter  
-            - Vokabulargröße  
+            - Vokabulargrösse  
             - Anteil Songs mit Zahlen im Text  
 
             Die Ergebnisse werden als Dreifach-Balkenplot gespeichert (`category_statistics.png`).
@@ -431,7 +431,7 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
 
         img = os.path.join(FIG_DIR, "rare_words_distribution.png")
         st.markdown("""
-            Ein großer Teil des Vokabulars in den Liedtexten ist selten: 48,6 % sind Hapaxlegomena (kommen nur einmal vor) 
+            Ein grosser Teil des Vokabulars in den Liedtexten ist selten: 48,6 % sind Hapaxlegomena (kommen nur einmal vor) 
             und 74,3 % aller Wörter kommen fünfmal oder weniger vor. 
             Einige wenige Wörter werden häufig wiederholt, während die meisten Wörter einzigartig oder sehr selten sind.
             """)
@@ -443,11 +443,12 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
             – also keine bedeutungsvollen Wörter im üblichen Sinne, sondern eher Zeichenfolgen oder erfundene Begriffe, die die Laute des Sängers nachahmen.
             """)
         st.code(
-            f"""RARE WORDS ANALYSIS
-            ============================================================
-            Hapax legomena:         {r['hapax_count']:,}  ({r['hapax_pct']:.1f}% vocab)
-            Rare words ≤5 times:    {r['rare_le_5']:,}  ({r['rare_le_5_pct']:.1f}% vocab)
-            Examples:
+            f"""
+RARE WORDS ANALYSIS
+============================================================
+Hapax legomena:         {r['hapax_count']:,}  ({r['hapax_pct']:.1f}% vocab)
+Rare words ≤5 times:    {r['rare_le_5']:,}  ({r['rare_le_5_pct']:.1f}% vocab)
+Examples:
               {r['example_hapax']}""",
             language="text",
         )
@@ -460,14 +461,13 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
         st.subheader("CATEGORY STATISTICS")
         img = os.path.join(FIG_DIR, "category_statistics.png")
         st.markdown("""
-            Rap scheint über einen großen Wortschatz zu verfügen, was mit dem zuvor beobachteten Vorkommen seltener Wörter übereinstimmt. 
+            Rap scheint über einen grossen Wortschatz zu verfügen, was mit dem zuvor beobachteten Vorkommen seltener Wörter übereinstimmt. 
             Ausserdem kommen Zahlen in Rap-Songs häufiger vor als in anderen Genres. 
             Im Gegensatz dazu weisen Country-Songs tendenziell einen sehr kleinen Wortschatz auf. 
             In den meisten Genres ist die durchschnittliche Anzahl der Wörter pro Song ziemlich ähnlich, 
             obwohl Rap-Songs etwas länger sind und Songs, die als „Verschiedenes” (misc) klassifiziert sind, 
             deutlich länger sind – allerdings lässt sich diese Kategorie nicht ohne Weiteres als spezifisches Genre interpretieren.
             """)
-        st.code(preview_text, language="text")
         if os.path.exists(img):
             st.image(img, use_container_width=200)
 
@@ -476,7 +476,6 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
     with tab_ngrams:
         st.subheader("TOP 15 N-GRAMS")
         img = os.path.join(FIG_DIR, "top15_ngrams.png")
-        st.code(preview_text, language="text")
         if os.path.exists(img):
             st.image(img, use_container_width=200)
 
@@ -485,7 +484,6 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
     with tab_artist:
         st.subheader("TOP N-GRAMS PER ARTIST")
         img = os.path.join(FIG_DIR, "top20_ngrams_per_artist.png")
-        st.code(preview_text, language="text")
         if os.path.exists(img):
             st.image(img, use_container_width=200)
 
@@ -494,7 +492,6 @@ def most_common_ngram_for_group(group_df: pd.DataFrame, label_col: str, n: int) 
     with tab_genres:
         st.subheader("TOP N-GRAMS PER GENRE")
         img = os.path.join(FIG_DIR, "top_ngrams_per_genre.png")
-        st.code(preview_text, language="text")
         if os.path.exists(img):
             st.image(img, use_container_width=200)
 

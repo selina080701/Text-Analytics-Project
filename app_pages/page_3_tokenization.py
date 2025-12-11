@@ -1,5 +1,7 @@
 import os
 import streamlit as st
+import pandas as pd
+import re
 
 def show_tokenization_page():
     st.title("3️⃣ Kapitel 3 – Tokenization: Genius Song Lyrics Subset (1%)")
@@ -86,6 +88,49 @@ def filtered_tokens(text):
 
 filtered_tokens("This is a test!")""",
         language="python"
+    )
+
+    STOPWORDS = {
+        "the", "a", "an", "and", "or", "but", "if", "then", "so", "than", "that", "those", "these", "this",
+        "to", "of", "in", "on", "for", "with", "as", "at", "by", "from", "into", "over", "under", "up", "down",
+        "is", "am", "are", "was", "were", "be", "been", "being", "do", "does", "did", "doing", "have", "has", "had",
+        "i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them", "my", "your", "his", "its",
+        "our", "their",
+        "not", "no", "yes", "yeah", "y'all", "yall", "im", "i'm", "i’d", "i'd", "i’ll", "i'll", "youre", "you're",
+        "dont", "don't",
+        "cant", "can't", "ill", "i’ll", "id", "i'd", "ive", "i’ve", "ya", "oh", "ooh", "la", "na", "nah"
+    }
+
+    def preprocess_text(text):
+        if not isinstance(text, str):
+            return []
+        text = text.lower()
+        text = re.sub(r"[^a-z\s]", "", text)
+        return text.split()
+
+    def filtered_tokens(text):
+        tokens = preprocess_text(text)
+        return [t for t in tokens if t not in STOPWORDS and not t.isdigit() and len(t) > 1]
+
+    # -----------------------------
+    # DataFrame laden und Spalten erzeugen
+    # -----------------------------
+    df = pd.read_csv("data/clean/lyrics_subset_1pct_clean.csv")
+
+    df["tokens"] = df["lyrics"].apply(filtered_tokens)
+    df["token_count"] = df["tokens"].apply(len)
+
+    # Optional: words + word_count erzeugen falls nicht vorhanden
+    df["words"] = df["lyrics"].apply(lambda x: x.split())
+    df["word_count"] = df["words"].apply(len)
+
+    # -----------------------------
+    # Ausgabe in Streamlit
+    # -----------------------------
+    st.subheader("Tokenisierte Vorschau")
+    st.dataframe(
+        df[['title', 'artist', 'words', 'word_count', 'tokens', 'token_count']].head(),
+        use_container_width=True
     )
 
     st.subheader("2.3 Visualisierung der häufigsten Wörter")

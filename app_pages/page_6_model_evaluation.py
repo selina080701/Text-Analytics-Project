@@ -16,6 +16,10 @@ def show_model_evaluation_page():
         """
         **Dataset:** 34'049 Songs | 26'408 Artists | 6 Genres  
         **Genres:** Rap / Hip-Hop · Rock · Pop · R&B · Country · Miscellaneous
+        
+        **Purpose:**  
+        Mehrere Modelle zur automatischen Genre-Klassifikation vergleichen – basierend auf
+        unterschiedlichen Textrepräsentationen (Embeddings) und Klassifikatoren.  
 
         **Embeddings:**  
         - Word2Vec (self-trained)  
@@ -26,10 +30,6 @@ def show_model_evaluation_page():
         - LinearSVC  
         - Logistic Regression  
         - Random Forest  
-
-        **Purpose:**  
-        Mehrere Modelle zur automatischen Genre-Klassifikation vergleichen – basierend auf
-        unterschiedlichen Textrepräsentationen (Embeddings) und Klassifikatoren.  
 
         Ausgewertet werden:  
         - Accuracy & Balanced Accuracy  
@@ -51,14 +51,42 @@ def show_model_evaluation_page():
     # =========================
     # 1. Notebook-Dokumentation (kurz)
     # =========================
-    st.header("1. Notebook-Workflow (kurz dokumentiert)")
+    st.header("1. Preparation")
+    st.subheader("1.1 Load Dataset")
 
-    st.subheader("1.1 Label-Encoding")
+    st.markdown("""
+    Laden des final bereinigten Datensatzes (`data/clean/data.csv`) und
+    Konvertierung der Spalte `tokens` von einer String-Repräsentation in echte Python-Listen
+    (mittels `ast.literal_eval`).
+
+    Anschließend erfolgt das **Label-Encoding**: Die Genre-Bezeichnungen (Strings wie *"rap"*, *"rock"*, *"rb"*) werden 
+    mit einem `LabelEncoder` in ganze Zahlen umgewandelt, da Klassifikationsmodelle numerische Labels benötigen.
+    """)
+
     st.code(
         """
+df = pd.read_csv("data/clean/data.csv")
+
+df["tokens"] = df["tokens"].apply(ast.literal_eval)
+texts = df["tokens"]
+labels = df["tag"]
+
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(labels)
+        """,
+        language="python",
+    )
 
+    st.subheader("1.2 Train-Test-Split")
+    st.markdown("""
+    Der Datensatz wird in einen **Trainings-** und einen **Testsplit** aufgeteilt. Dabei werden 80 % der Daten zum 
+    Trainieren der Modelle verwendet, die restlichen 20 % dienen zur unabhängigen Evaluation.
+
+    Durch `stratify=y_encoded` wird sichergestellt, dass alle Genres im gleichen Verhältnis in beiden Splits vertreten 
+    sind – wichtig bei **unausgeglichenen Klassen**.
+    """)
+    st.code(
+        """
 X_train_texts, X_test_texts, y_train, y_test = train_test_split(
     texts,
     y_encoded,
@@ -69,21 +97,30 @@ X_train_texts, X_test_texts, y_train, y_test = train_test_split(
         language="python",
     )
 
-    st.subheader("1.2 Word2Vec-Embedding + Klassifikation")
-    st.markdown(
-        """
-        - Training eines **Word2Vec**-Modells auf den Trainings-Tokens  
-        - Embedding pro Dokument = Durchschnitt aller Wortvektoren  
-        - Training von drei Klassifikatoren:  
-            - LinearSVC  
-            - Logistic Regression  
-            - Random Forest  
-        - Für jeden Klassifikator wird eine **normalisierte Confusion Matrix** geplottet  
-          und als PNG nach `documentation/model_evaluation/` gespeichert.
-        """
-    )
+    # =========================
+    # 2. Embeddings & Modelle
+    # =========================
+
+    st.header("2. Embeddings & Modelle")
+    st.subheader("2.1 Word2Vec")
+
+    # -------------------------
+    # 2.1.1 Embedding erzeugen
+    # -------------------------
+    st.markdown("### 2.1.1 Embedding erzeugen")
+    st.markdown("""
+    Für die erste Embedding-Strategie wird ein **Word2Vec-Modell** auf den Token-Sequenzen
+    des Trainingssplits trainiert. Word2Vec lernt für jedes Wort einen dichten Vektor,
+    der semantische Ähnlichkeiten abbildet (z. B. ähnliche Wörter → ähnliche Vektoren).
+
+    Um jedes Dokument (Songtext) als festen Embedding-Vektor darzustellen,
+    werden die Wortvektoren gemittelt (**Mean Word Embedding**).  
+    Dies erzeugt einen robusten, kompakten Repräsentationsvektor pro Song.
+    """)
+
     st.code(
-        """w2v = Word2Vec(
+        """
+w2v = Word2Vec(
     sentences=X_train_tokens,
     vector_size=100,
     window=5,
@@ -91,7 +128,7 @@ X_train_texts, X_test_texts, y_train, y_test = train_test_split(
     workers=4,
     sg=1,
     epochs=10,
-    seed=42
+    seed=42,
 )
 
 def embed_sentence(tokens, model):
@@ -101,31 +138,88 @@ def embed_sentence(tokens, model):
     return np.mean(vectors, axis=0)
 
 X_train_w2v = np.vstack([embed_sentence(toks, w2v) for toks in X_train_tokens])
-X_test_w2v  = np.vstack([embed_sentence(toks, w2v) for toks in X_test_tokens)
-
-# Beispiel: LinearSVC + Confusion Matrix speichern
-clf_w2v_svc = LinearSVC(class_weight="balanced", max_iter=10000)
-clf_w2v_svc.fit(X_train_w2v, y_train)
-y_pred_w2v_svc = clf_w2v_svc.predict(X_test_w2v)
-
-cm = confusion_matrix(y_test, y_pred_w2v_svc,
-                      labels=label_encoder.transform(label_encoder.classes_))
-cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-""",
+X_test_w2v  = np.vstack([embed_sentence(toks, w2v) for toks in X_test_tokens])""",
         language="python",
     )
 
-    st.subheader("1.3 TF-IDF-Embedding + Klassifikation")
-    st.markdown(
-        """
-        - TF-IDF auf **Character n-grams (3–5)**  
-        - Gleiche drei Klassifikatoren wie bei Word2Vec  
-        - Confusion Matrices ebenfalls als PNG gespeichert  
-          (`cm_tfidf_*.png`).
-        """
-    )
+    # -------------------------
+    # 2.1.2 Klassifikation
+    # -------------------------
+    st.markdown("### 2.1.2 Klassifikation auf Word2Vec")
+    st.markdown("""
+    Auf Basis der erzeugten Word2Vec-Embeddings werden drei unterschiedliche
+    Klassifikationsmodelle trainiert.  
+    Alle Modelle erhalten `class_weight="balanced"`, um die ungleich verteilten Genres auszugleichen
+    und Minderheitsklassen nicht zu benachteiligen.
+
+    Im Folgenden werden die drei Modelle jeweils einzeln gezeigt.
+    """)
+
+    st.markdown("""
+    **LinearSVC** ist ein lineares SVM-Modell und eignet sich gut für hochdimensionale Text-Embeddings.
+    """)
+
     st.code(
-        """X_train_texts_char = X_train_texts.apply(lambda toks: " ".join(toks))
+        """
+clf_w2v_svc = LinearSVC(class_weight="balanced", max_iter=10000)
+clf_w2v_svc.fit(X_train_w2v, y_train)
+y_pred_w2v_svc = clf_w2v_svc.predict(X_test_w2v)""",
+        language="python",
+    )
+
+    st.markdown("""
+    Die **Logistische Regression** ist ein einfaches, stabiles lineares Modell und funktioniert gut bei unausgeglichenen Klassen.
+    """)
+
+    st.code(
+        """
+clf_w2v_logreg = LogisticRegression(
+    max_iter=2000,
+    n_jobs=-1,
+    class_weight="balanced",
+)
+clf_w2v_logreg.fit(X_train_w2v, y_train)
+y_pred_w2v_logreg = clf_w2v_logreg.predict(X_test_w2v)""",
+        language="python",
+    )
+
+    st.markdown("""
+    Der **Random Forest** ist ein nichtlineares Ensemblemodell. Er kann komplexe Muster erfassen, skaliert aber weniger gut mit hochdimensionalen Text-Embeddings.
+    """)
+
+    st.code(
+        """
+clf_w2v_rf = RandomForestClassifier(
+    n_estimators=400,
+    max_depth=20,
+    min_samples_leaf=3,
+    max_features="sqrt",
+    class_weight="balanced",
+    n_jobs=-1,
+    random_state=42,
+)
+clf_w2v_rf.fit(X_train_w2v, y_train)
+y_pred_w2v_rf = clf_w2v_rf.predict(X_test_w2v)""",
+        language="python",
+    )
+
+    st.subheader("2.2 TF-IDF")
+
+    # -------------------------
+    # 2.2.1 Embedding erzeugen
+    # -------------------------
+    st.markdown("### 2.2.1 Embedding erzeugen")
+    st.markdown("""
+    Für die zweite Embedding-Strategie wird **TF-IDF** auf Zeichen-n-Grammen angewendet.  
+    Die Token-Sequenzen werden dazu wieder zu Strings zusammengefügt, anschließend wird ein
+    TF-IDF-Vektorraum auf **Character n-grams (3–5)** gelernt.
+
+    Damit lassen sich charakteristische Schreibweisen, Silbenmuster und typische Endungen pro Genre erfassen.
+    """)
+
+    st.code(
+        """
+X_train_texts_char = X_train_texts.apply(lambda toks: " ".join(toks))
 X_test_texts_char  = X_test_texts.apply(lambda toks: " ".join(toks))
 
 tfidf = TfidfVectorizer(
@@ -136,30 +230,86 @@ tfidf = TfidfVectorizer(
 )
 
 X_train_tfidf = tfidf.fit_transform(X_train_texts_char)
-X_test_tfidf  = tfidf.transform(X_test_texts_char)
-
-clf_tfidf_svc = LinearSVC(class_weight="balanced")
-clf_tfidf_svc.fit(X_train_tfidf, y_train)
-y_pred_tfidf_svc = clf_tfidf_svc.predict(X_test_tfidf)
-
-cm = confusion_matrix(y_test, y_pred_tfidf_svc,
-                      labels=label_encoder.transform(label_encoder.classes_))
-cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-""",
+X_test_tfidf  = tfidf.transform(X_test_texts_char)""",
         language="python",
     )
 
-    st.subheader("1.4 Transformer-Embedding (SentenceTransformer MiniLM) + Klassifikation")
-    st.markdown(
-        """
-        - Verwendung von **SentenceTransformer all-MiniLM-L6-v2** (`device="cpu"`)  
-        - Embeddings werden direkt aus den vollständigen Song-Texten erzeugt  
-        - Wieder drei Klassifikatoren  
-        - Confusion Matrices als `cm_st_*.png` gespeichert.
-        """
-    )
+    # -------------------------
+    # 2.2.2 Klassifikation auf TF-IDF
+    # -------------------------
+    st.markdown("### 2.2.2 Klassifikation auf TF-IDF")
+    st.markdown("""
+    Auf den TF-IDF-Features werden erneut drei Klassifikationsmodelle trainiert:
+    **LinearSVC**, **Logistic Regression** und **Random Forest**, jeweils mit
+    `class_weight="balanced"`.
+    """)
+
+    # LinearSVC
+    st.markdown("""
+    **LinearSVC** eignet sich auch hier gut für die hochdimensionalen TF-IDF-Vektoren.
+    """)
     st.code(
-        """model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+        """
+clf_tfidf_svc = LinearSVC(class_weight="balanced")
+clf_tfidf_svc.fit(X_train_tfidf, y_train)
+y_pred_tfidf_svc = clf_tfidf_svc.predict(X_test_tfidf)""",
+        language="python",
+    )
+
+    # Logistische Regression
+    st.markdown("""
+    Die **Logistische Regression** dient als weiteres lineares Basismodell auf TF-IDF.
+    """)
+    st.code(
+        """
+clf_tfidf_logreg = LogisticRegression(
+    max_iter=2000,
+    n_jobs=-1,
+    class_weight="balanced",
+)
+clf_tfidf_logreg.fit(X_train_tfidf, y_train)
+y_pred_tfidf_logreg = clf_tfidf_logreg.predict(X_test_tfidf)""",
+        language="python",
+    )
+
+    # Random Forest
+    st.markdown("""
+    Der **Random Forest** bildet die nichtlineare Vergleichsbasis auf TF-IDF-Features.
+    """)
+    st.code(
+        """
+clf_tfidf_rf = RandomForestClassifier(
+    n_estimators=400,
+    max_depth=20,
+    min_samples_leaf=3,
+    max_features="sqrt",
+    class_weight="balanced",
+    n_jobs=-1,
+    random_state=42,
+)
+clf_tfidf_rf.fit(X_train_tfidf, y_train)
+y_pred_tfidf_rf = clf_tfidf_rf.predict(X_test_tfidf)""",
+        language="python",
+    )
+
+    st.subheader("2.3 Transformer (SentenceTransformer MiniLM)")
+
+    # -------------------------
+    # 2.3.1 Embedding erzeugen
+    # -------------------------
+    st.markdown("### 2.3.1 Embedding erzeugen")
+    st.markdown("""
+    Als dritte Embedding-Strategie wird ein **SentenceTransformer** verwendet:
+    `all-MiniLM-L6-v2` erzeugt semantische Satz- bzw. Dokument-Embeddings direkt aus den
+    vollständigen Songtexten.
+
+    Dazu werden die Token-Sequenzen wieder zu Strings zusammengefügt und mit dem
+    SentenceTransformer zu dichten Vektoren enkodiert.
+    """)
+
+    st.code(
+        """
+model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
 
 X_train_sent = [" ".join(toks) for toks in X_train_texts]
 X_test_sent  = [" ".join(toks) for toks in X_test_texts]
@@ -180,21 +330,78 @@ X_test_emb_st = model.encode(
     convert_to_tensor=True,
 )
 
+# Tensor → Python-Listen (für die Sklearn-Modelle)
 X_train_emb_st = X_train_emb_st.tolist()
-X_test_emb_st  = X_test_emb_st.tolist()
-
-clf_st_svc = LinearSVC(class_weight="balanced", max_iter=10000)
-clf_st_svc.fit(X_train_emb_st, y_train)
-y_pred_st_svc = clf_st_svc.predict(X_test_emb_st)
-
-cm = confusion_matrix(y_test, y_pred_st_svc,
-                      labels=np.arange(len(label_encoder.classes_)))
-cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-""",
+X_test_emb_st  = X_test_emb_st.tolist()""",
         language="python",
     )
 
-    st.subheader("1.5 Speichern des finalen Modells & der Evaluationsergebnisse")
+    # -------------------------
+    # 2.3.2 Klassifikation auf Transformer-Embeddings
+    # -------------------------
+    st.markdown("### 2.3.2 Klassifikation auf Transformer-Embeddings")
+    st.markdown("""
+    Auf den Transformer-Embeddings werden erneut drei Klassifikationsmodelle trainiert:
+    **LinearSVC**, **Logistic Regression** und **Random Forest**.
+    """)
+
+    # LinearSVC
+    st.markdown("""
+    **LinearSVC** dient hier als robustes lineares Modell auf den semantischen Embeddings.
+    """)
+    st.code(
+        """
+clf_st_svc = LinearSVC(class_weight="balanced", max_iter=10000)
+clf_st_svc.fit(X_train_emb_st, y_train)
+y_pred_st_svc = clf_st_svc.predict(X_test_emb_st)""",
+        language="python",
+    )
+
+    # Logistische Regression
+    st.markdown("""
+    Die **Logistische Regression** wird als zweites lineares Vergleichsmodell verwendet.
+    """)
+    st.code(
+        """
+clf_st_logreg = LogisticRegression(
+    max_iter=2000,
+    n_jobs=-1,
+    class_weight="balanced",
+)
+clf_st_logreg.fit(X_train_emb_st, y_train)
+y_pred_st_logreg = clf_st_logreg.predict(X_test_emb_st)""",
+        language="python",
+    )
+
+    # Random Forest
+    st.markdown("""
+    Für den **Random Forest** werden die Embeddings in NumPy-Arrays konvertiert.
+    """)
+    st.code(
+        """
+X_train_st_rf = np.asarray(X_train_emb_st)
+X_test_st_rf  = np.asarray(X_test_emb_st)
+
+clf_st_rf = RandomForestClassifier(
+    n_estimators=400,
+    max_depth=20,
+    min_samples_leaf=3,
+    max_features="sqrt",
+    class_weight="balanced",
+    n_jobs=-1,
+    random_state=42,
+)
+
+clf_st_rf.fit(X_train_st_rf, y_train)
+y_pred_st_rf = clf_st_rf.predict(X_test_st_rf)""",
+        language="python",
+    )
+
+    # =========================
+    # 3. Save
+    # =========================
+
+    st.subheader("3. Speichern des finalen Modells & der Evaluationsergebnisse")
     st.code(
         """
 os.makedirs("models", exist_ok=True)
@@ -213,9 +420,10 @@ np.save(cm_path, cm_best)""",
     )
 
     # =================================================== #
-    # 2. Notebook-Resultate in der App
+    # 📁 NOTEBOOK-RESULTATE – Word Embeddings
     # =================================================== #
-    st.header("2. Notebook-Resultate – Modellvergleich & Confusion Matrices")
+    st.markdown("---")
+    st.header("📁 Notebook-Resultate – Word Embeddings")
 
     MODELS_DIR = "models"
     CM_DIR = "documentation/model_evaluation"
@@ -259,92 +467,9 @@ np.save(cm_path, cm_best)""",
                 df_eval = df_eval.sort_values(by="f1_macro", ascending=False)
 
                 # --------------------------------------------------
-                # Hilfsfunktion: deutsche Modellbeschreibung
-                # --------------------------------------------------
-                def get_model_description_de(model_name: str) -> str:
-                    name = model_name.lower()
-
-                    if "w2v" in name:
-                        return """
-    ### 📌 Word2Vec – Zusammenfassung der Klassifikatoren
-
-    **LinearSVC**
-    - Accuracy: ~0.577  
-    - Balanced Accuracy: ~0.508  
-    LinearSVC liefert die stabilste Gesamtleistung. Dominante Genres (rap, pop) werden zuverlässig erkannt, und die faire Klassenverteilung ist am besten. Minderheitsgenres bleiben weiterhin schwierig.
-
-    **Logistische Regression**
-    - Accuracy: ~0.463  
-    - Balanced Accuracy: ~0.551  
-    Höchste Balanced Accuracy – sehr faire und ausgewogene Klassifikation über alle Genres hinweg. Allerdings sinkt die Gesamtgenauigkeit, da große Klassen schwieriger zu unterscheiden sind.
-
-    **Random Forest**
-    - Accuracy: ~0.648  
-    - Balanced Accuracy: ~0.405  
-    Höchste Accuracy, aber deutlichste Verzerrung zugunsten der Mehrheitsklassen (pop, rap). Sehr schwach für Minderheitsgenres.
-
-    **Fazit (Word2Vec)**
-    - Beste Gesamtperformance: **LinearSVC**  
-    - Beste Fairness: **Logistische Regression**  
-    - Höchste Accuracy, aber am wenigsten fair: **Random Forest**
-    """
-
-                    if "tfidf" in name:
-                        return """
-    ### 📌 TF-IDF – Zusammenfassung der Klassifikatoren
-
-    **LinearSVC**
-    - Accuracy: ~0.593  
-    - Balanced Accuracy: ~0.458  
-    Sehr gute Gesamtperformance mit stabiler Accuracy. Minderheitsgenres bleiben jedoch schwierig.
-
-    **Logistische Regression**
-    - Accuracy: ~0.551  
-    - Balanced Accuracy: ~0.535  
-    Beste Fairness über alle Genres – ausgewogene Klassifikation, besserer Recall für kleinere Klassen wie *misc* und *rb*.
-
-    **Random Forest**
-    - Accuracy: ~0.581  
-    - Balanced Accuracy: ~0.405  
-    Akzeptable Accuracy, aber deutliche Probleme bei Minderheitsgenres (insbesondere *country* und *rb*).
-
-    **Fazit (TF-IDF)**
-    - Beste Gesamtperformance: **LinearSVC**  
-    - Beste Fairness: **Logistische Regression**  
-    - Höchste Accuracy, aber am wenigsten fair: **Random Forest**
-    """
-
-                    if "st" in name or "transformer" in name or "minilm" in name:
-                        return """
-    ### 📌 Transformer (SentenceTransformer MiniLM) – Zusammenfassung
-
-    **LinearSVC**
-    - Accuracy: ~0.572  
-    - Balanced Accuracy: ~0.515  
-    Beste Gesamtbalance zwischen Genauigkeit und Fairness. Dominante Genres (rap, pop) werden zuverlässig erkannt, Minderheitsgenres profitieren von den reicheren Transformer-Embeddings.
-
-    **Logistische Regression**
-    - Accuracy: ~0.475  
-    - Balanced Accuracy: ~0.543  
-    Höchste Balanced Accuracy – sehr faire Verteilung über alle Klassen. Die Gesamtgenauigkeit ist etwas niedriger, vor allem wegen der schwierigen *pop*-Klasse.
-
-    **Random Forest**
-    - Accuracy: ~0.624  
-    - Balanced Accuracy: ~0.343  
-    Sehr hohe Accuracy, aber extrem schlechte Fairness gegenüber Minderheitsgenres (country, rb). Starker Bias zugunsten der Mehrheitsklassen.
-
-    **Fazit (Transformer)**
-    - Beste Gesamtperformance: **LinearSVC**  
-    - Beste Fairness: **Logistische Regression**  
-    - Höchste Accuracy, aber schlechteste Fairness: **Random Forest**
-    """
-
-                    return ""
-
-                # --------------------------------------------------
                 # 2.1 Übersicht über alle Modelle
                 # --------------------------------------------------
-                st.subheader("2.1 Übersicht über alle Modelle")
+                st.subheader("Übersicht über alle Modelle")
 
                 st.dataframe(
                     df_eval[
@@ -360,14 +485,14 @@ np.save(cm_path, cm_best)""",
                 )
 
                 st.markdown("---")
-                st.subheader("2.2 F1-Macro nach Modell")
+                st.subheader("F1-Macro nach Modell")
                 st.bar_chart(df_eval.set_index("model")["f1_macro"])
 
                 # --------------------------------------------------
                 # 2.3 Details zu den Modellen (Tabs)
                 # --------------------------------------------------
                 st.markdown("---")
-                st.subheader("2.3 Details zu den Modellen (inkl. Confusion Matrices)")
+                st.subheader("Details zu den Modellen (inkl. Confusion Matrices)")
 
 
                 # ---------- TAB-NAME FORMATIERUNG ----------
@@ -546,7 +671,7 @@ np.save(cm_path, cm_best)""",
                 # 3. Finale Modellwahl (einmal, außerhalb der Tabs)
                 # --------------------------------------------------
                 st.markdown("---")
-                st.subheader("3. Finale Modellwahl & Modellselektion")
+                st.subheader("Finale Modellwahl & Modellselektion")
 
                 st.markdown("""
     Über alle drei Embedding-Strategien – **Word2Vec**, **TF-IDF** und **Transformer (MiniLM)** – zeigt sich ein konsistentes Muster:
@@ -555,7 +680,7 @@ np.save(cm_path, cm_best)""",
     - **Logistische Regression** verbessert systematisch die Klassenbalance und den Recall für Minderheitsgenres.  
     - **Random Forest** erreicht oft hohe Accuracy, ist aber deutlich zugunsten der Mehrheitsklassen verzerrt und erzielt eine niedrige Balanced Accuracy.
 
-    ### 🎯 Final gewähltes Modell
+    #### 🎯 Final gewähltes Modell
 
     **SentenceTransformer (MiniLM) + LinearSVC**
 

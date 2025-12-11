@@ -9,6 +9,8 @@ from sklearn.decomposition import PCA
 import pandas as pd
 
 def show_word_embedding_page():
+    import pandas as pd
+
     st.title("5️⃣ Kapitel 5 – Word Embedding: Genius Song Lyrics Subset (1%)")
 
     st.markdown("""

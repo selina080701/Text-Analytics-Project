@@ -203,10 +203,13 @@ generate_song(text_model_genre)""",
     # Für die App: Daten laden (falls nicht global)
     import pandas as pd
     import markovify
+    from pathlib import Path
 
     @st.cache_data
     def load_lyrics_df():
-        return pd.read_csv("data/clean/data.csv")
+        base_dir = Path(__file__).resolve().parents[1]
+        data_path = base_dir / "data" / "clean" / "data.csv.gz"
+        return pd.read_csv(data_path, compression="gzip")
 
     df_markov = load_lyrics_df()
 

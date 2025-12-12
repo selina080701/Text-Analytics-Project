@@ -4,6 +4,8 @@
 
 **GitHub Repository:** [https://github.com/selina080701/Text-Analytics-Project](https://github.com/selina080701/Text-Analytics-Project)
 
+**Deployed Streamlit App:** https://text-analytics-lyrics.streamlit.app/
+
 ---
 
 ## Project Description

@@ -15,7 +15,34 @@ This project is part of the *Text Analytics* module. Students work in teams on a
 - Selecting and evaluating appropriate models  
 - Implementing a functional Python prototype  
 
+The project explores song lyrics as textual data, focusing on:
+- linguistic patterns and stylistic differences across genres and artists
+- genre classification using multiple text representations
+- generation of synthetic lyrics based on learned structures
+
 This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co/datasets/sebastiandizon/genius-song-lyrics) from Hugging Face.
+
+---
+
+## Folder Structure
+The following structure summarizes the organization of the project repository:
+
+
+Text-Analytics-Project/
+├── app.py                 # Streamlit application entry point
+├── app_pages/             # Streamlit multi-page app modules
+├── data/
+│   ├── raw/               # Raw subsets of the dataset (e.g., 1%, 5%)
+│   ├── clean/             # Cleaned versions of the subsets
+│   │   └── data.csv       # Final dataset for analysis, embeddings, etc.
+│   └── features/          # Saved embeddings and labels
+├── documentation/         # Figures, evaluation results, and presentations
+├── models/                # Trained models and label encoders
+├── utils/                 # Shared helper functions and configuration
+├── *.ipynb                # Project notebooks
+├── requirements.txt       # Python dependencies for the project
+└── README.md              # Project documentation
+
 
 ---
 
@@ -68,20 +95,16 @@ This project is based on the [Genius Song Lyrics Dataset](https://huggingface.co
 
 ---
 
-## Folder Structure
+## Streamlit Application
 
-- `data/raw/` : Raw subsets of the dataset (e.g., 1%, 5%)  
-- `data/clean/` : Cleaned versions of the subsets  
-- `data/clean/data.csv` : Final dataset for analysis, embeddings, etc.
-- `load-data-subset.ipynb` : Notebook to load and save raw subsets  
-- `data-cleaning.ipynb` : Notebook to clean the raw lyrics  
-- `tokenization.ipynb` : Notebook to tokenize lyrics and remove stopwords
-- `statistical-analysis.ipynb` : Notebook to perform analysis on cleaned data  
-- `word-embedding.ipynb` : Notebook to generate and analyze word embeddings
-- `model-evaluation.ipynb` : Notebook to evaluate models for genre classification
-- `text-classification.ipynb` : Notebook to classify song lyrics
-- `text-generation.ipynb`: Notebook for generating song lyrics
-- `requirements.txt` : Python dependencies for the project  
+In addition to the notebooks, the project includes an interactive Streamlit application:
+
+- Provides an overview of all project steps
+- Visualizes statistical analyses and evaluation results
+- Allows interactive genre prediction for new lyrics
+- Demonstrates text generation using the trained Markov models
+
+The Streamlit app focuses on presenting results, not retraining models. All training and evaluation steps are performed in the corresponding notebooks.
 
 ---
 
@@ -123,3 +146,18 @@ nbdime config-git --enable --global
 ```bash
 jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace <notebook>.ipynb
 ```
+
+---
+
+## Notes
+
+- The dataset subsets are intentionally small to keep the project lightweight and reproducible.
+- All generated models and evaluation artifacts are stored in the `models/` and `documentation/` folders.
+- `__pycache__` directories and virtual environments are excluded via `.gitignore`.
+
+---
+
+## License & Disclaimer
+
+This project was developed for educational purposes as part of a university course.
+The generated lyrics are synthetic and do not represent original copyrighted works.
